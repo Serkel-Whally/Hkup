@@ -1,0 +1,28 @@
+{
+  "name": "@whally/backend",
+  "version": "1.0.2",
+  "description": "Whally backend (MVP) - MongoDB, Auth, Plans, Orders, Payments",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "nodemon src/index.js --watch src",
+    "start": "node src/index.js",
+    "seed": "node src/seed.js",
+    "build": "echo \"No build step for backend (pure JS)\"",
+    "test": "echo \"No tests configured\" && exit 0"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "body-parser": "^1.20.2",
+    "uuid": "^9.0.0",
+    "mongoose": "^7.0.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.0",
+    "dotenv": "^16.0.0",
+    "cookie-parser": "^1.4.6",
+    "axios": "^1.6.2"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+}

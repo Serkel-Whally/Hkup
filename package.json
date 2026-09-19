@@ -1,0 +1,20 @@
+{
+  "name": "whally",
+  "version": "2.0.0",
+  "description": "Mobile data bundles e-commerce platform for Ghana",
+  "private": true,
+  "workspaces": [
+    "packages/frontend",
+    "packages/backend"
+  ],
+  "scripts": {
+    "dev": "concurrently \"yarn workspace @whally/frontend dev\" \"yarn workspace @whally/backend dev\"",
+    "build": "yarn workspace @whally/frontend build && yarn workspace @whally/backend build",
+    "test": "yarn workspaces run test",
+    "lint": "yarn workspaces run lint"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "typescript": "5.3.3"
+  }
+}
