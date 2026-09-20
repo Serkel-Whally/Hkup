@@ -380,6 +380,8 @@ GH₵20.00
 Recipient Number
 [ 024 XXX XXXX ]
 
+PROMOTION CODE
+#Promotion Aready exist in the checkout page
 
 Total
 GH₵20.00
