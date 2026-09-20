@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { ArrowLeftRight, Diamond, Headset, House, LogOut, UserRound, WalletCards, X } from "lucide-react";
-import { signOut } from "next-auth/react";
 
 type NavigationDrawerProps = {
   open: boolean;
@@ -23,10 +23,11 @@ const links = [
 
 export default function NavigationDrawer({ open, activePath, onClose }: NavigationDrawerProps) {
   const drawerRef = useRef<HTMLDivElement | null>(null);
+  const router = useRouter();
 
   const handleLogout = async () => {
     onClose();
-    await signOut({ callbackUrl: "/login" });
+    router.push("/login");
   };
 
   useEffect(() => {

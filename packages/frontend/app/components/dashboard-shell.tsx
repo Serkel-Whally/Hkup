@@ -3,7 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { signOut, useSession } from "next-auth/react";
 import {
 	House,
 	Diamond,
@@ -32,7 +31,6 @@ import { getStoredNotifications } from "@/app/lib/notifications";
 export function DashboardShell({ children, active = "/dashboard", hideNavigation = false }: any) {
 	const pathname = usePathname();
 	const router = useRouter();
-	const { data: session } = useSession();
 	const [drawerOpen, setDrawerOpen] = useState(false);
 	const [profileOpen, setProfileOpen] = useState(false);
 	const [userName, setUserName] = useState("Customer");
@@ -76,8 +74,7 @@ export function DashboardShell({ children, active = "/dashboard", hideNavigation
 
 		const loadUser = () => {
 			if (!isMounted) return;
-			const nextName = session?.user?.name || session?.user?.email || "Customer";
-			setUserName(nextName);
+			setUserName("Customer");
 		};
 
 		loadUser();
@@ -86,10 +83,10 @@ export function DashboardShell({ children, active = "/dashboard", hideNavigation
 			isMounted = false;
 			window.removeEventListener("cellulite-notifications-updated", onNotificationsUpdated);
 		};
-	}, [pathname, redirectToLogin, session]);
+	}, [pathname, redirectToLogin]);
 
 	async function logout() {
-		await signOut({ callbackUrl: "/login" });
+		router.replace("/login");
 		toast.success("Logged out", { description: "You have been signed out securely." });
 	}
 
@@ -248,10 +245,9 @@ function SearchBar() {
 		</div>
 	);
 }
-''
+
 export function DashboardHome() {
 	const router = useRouter();
-	const { data: session } = useSession();
 	type DashboardOrder = {
 		id: string;
 		network: string;
@@ -279,46 +275,16 @@ export function DashboardHome() {
 	useEffect(() => {
 		const hour = new Date().getHours();
 		setGreeting(hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening");
+		setUserName("your account");
+		setWalletBalance("GH₵ 0.00");
+		setOrders([]);
+		setPopularBundles([
+			{ id: "mtn-1", network: "MTN", size: "1GB", price: "GH₵ 3.50", validity: "1 day", popular: true },
+			{ id: "mtn-2", network: "MTN", size: "5GB", price: "GH₵ 10.00", validity: "7 days", popular: true },
+			{ id: "telecel-1", network: "Telecel", size: "2GB", price: "GH₵ 6.00", validity: "3 days", popular: true },
+			{ id: "airtel-1", network: "AirtelTigo", size: "10GB", price: "GH₵ 15.00", validity: "30 days", popular: true },
+		]);
 	}, []);
-
-	useEffect(() => {
-		const loadProfile = () => {
-			if (!session?.user) {
-				setUserName("your account");
-				setWalletBalance("GH₵ 0.00");
-				setOrders([]);
-				return;
-			}
-
-			setUserName((session.user as any)?.full_name || session.user.name || session.user.email || "your account");
-			setWalletBalance("GH₵ 0.00");
-			setOrders([]);
-		};
-
-		const loadPopularBundles = async () => {
-			try {
-				const response = await fetch("/api/bundles", { cache: "no-store" });
-				if (!response.ok) return;
-				const payload = await response.json();
-				const bundles = Array.isArray(payload?.bundles) ? payload.bundles : [];
-				setPopularBundles(
-					bundles
-						.filter((bundle: any) => bundle?.popular)
-						.slice(0, 6)
-						.map((bundle: any) => ({
-							...bundle,
-							price: `GH₵ ${Number(bundle.price ?? 0).toFixed(2)}`,
-							validity: bundle.validity || "30 Days Validity",
-						}))
-				);
-			} catch {
-				setPopularBundles([]);
-			}
-		};
-
-		void loadProfile();
-		void loadPopularBundles();
-	}, [session]);
 
 	const transactions = orders.slice(0, 4).map((order) => ({
 		id: order.id,
