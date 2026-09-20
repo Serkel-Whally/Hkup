@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/app/lib/supabase/client";
 import { LoadingDots } from "@/app/components/loading-dots";
 
 export function AppBootLoader() {
@@ -23,10 +22,6 @@ export function AppBootLoader() {
       const startTime = Date.now();
 
       try {
-        if (supabase) {
-          await supabase.auth.getSession();
-        }
-
         await new Promise<void>((resolve) => {
           if (document.readyState === "complete") {
             resolve();

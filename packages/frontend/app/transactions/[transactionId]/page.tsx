@@ -2,11 +2,37 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, CalendarRange, CheckCircle2, Clock3, CreditCard, List, Phone, Receipt, Truck, XCircle } from "lucide-react";
 import { notFound } from "next/navigation";
 import { DashboardShell } from "@/app/components/dashboard-shell";
-import { getCurrentCustomerOrderById } from "@/app/lib/supabase/customer";
+
+const MOCK_ORDERS = [
+  {
+    id: "1",
+    network: "MTN",
+    bundle_size: "10GB",
+    recipient_phone: "024 123 4567",
+    amount: "20.00",
+    created_at: "2025-08-15T10:24:00.000Z",
+    payment_status: "paid",
+    delivery_status: "delivered",
+    payment_method: "Mobile Money",
+    reference: "TXN-20250815-102457",
+  },
+  {
+    id: "2",
+    network: "Telecel",
+    bundle_size: "20GB",
+    recipient_phone: "055 987 6543",
+    amount: "45.00",
+    created_at: "2025-09-04T08:15:00.000Z",
+    payment_status: "paid",
+    delivery_status: "processing",
+    payment_method: "Card",
+    reference: "TXN-20250904-440111",
+  },
+];
 
 export default async function TransactionDetailPage({ params }: { params: Promise<{ transactionId: string }> }) {
   const routeParams = await params;
-  const order = await getCurrentCustomerOrderById(routeParams.transactionId);
+  const order = MOCK_ORDERS.find((entry) => entry.id === routeParams.transactionId);
   if (!order) notFound();
 
   const transaction = {

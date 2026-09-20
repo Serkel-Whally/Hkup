@@ -15,6 +15,16 @@ const NETWORKS = [
 
 const PLAN_CATEGORIES = ["Data Bundles", "Mega Bundles", "Night Bundles"];
 
+const FALLBACK_BUNDLES = [
+  { id: "mtn-1", network: "MTN", size: "1GB", validity: "7 Days", price: 4.5, popular: false },
+  { id: "mtn-2", network: "MTN", size: "5GB", validity: "30 Days", price: 15.0, popular: true },
+  { id: "mtn-3", network: "MTN", size: "10GB", validity: "30 Days", price: 28.0, popular: true },
+  { id: "telecel-1", network: "Telecel", size: "3GB", validity: "14 Days", price: 10.0, popular: false },
+  { id: "telecel-2", network: "Telecel", size: "8GB", validity: "30 Days", price: 22.5, popular: true },
+  { id: "airtel-1", network: "AirtelTigo", size: "2GB", validity: "7 Days", price: 7.0, popular: false },
+  { id: "airtel-2", network: "AirtelTigo", size: "12GB", validity: "30 Days", price: 32.0, popular: true },
+];
+
 type Bundle = { id: string; size: string; validity: string; price: string; popular: boolean };
 type BundleData = Record<string, Record<string, Bundle[]>>;
 
@@ -35,43 +45,30 @@ export default function BuyDataPage() {
   } | null>(null);
 
   useEffect(() => {
-    const loadBundles = async () => {
-      try {
-        const response = await fetch("/api/bundles", { cache: "no-store" });
-        if (!response.ok) throw new Error("Unable to load bundles.");
+    const grouped: BundleData = {};
 
-        const payload = await response.json();
-        const bundles = Array.isArray(payload?.bundles) ? payload.bundles : [];
-        const grouped: BundleData = {};
+    for (const bundle of FALLBACK_BUNDLES) {
+      const networkId = NETWORKS.find((network) => network.name === bundle.network)?.id;
+      if (!networkId) continue;
+      const category = /night/i.test(bundle.validity)
+        ? "Night Bundles"
+        : /^(?:[3-9]\d|\d{3,})GB$/i.test(bundle.size)
+          ? "Mega Bundles"
+          : "Data Bundles";
+      grouped[networkId] ??= {};
+      grouped[networkId][category] ??= [];
+      grouped[networkId][category].push({
+        id: bundle.id,
+        size: bundle.size,
+        validity: bundle.validity,
+        price: `GH₵ ${Number(bundle.price).toFixed(2)}`,
+        popular: Boolean(bundle.popular),
+      });
+    }
 
-        for (const bundle of bundles) {
-          const networkId = NETWORKS.find((network) => network.name === bundle.network)?.id;
-          if (!networkId) continue;
-          const category = /night/i.test(bundle.validity)
-            ? "Night Bundles"
-            : /^(?:[3-9]\d|\d{3,})GB$/i.test(bundle.size)
-              ? "Mega Bundles"
-              : "Data Bundles";
-          grouped[networkId] ??= {};
-          grouped[networkId][category] ??= [];
-          grouped[networkId][category].push({
-            id: bundle.id,
-            size: bundle.size,
-            validity: bundle.validity,
-            price: `GH₵ ${Number(bundle.price).toFixed(2)}`,
-            popular: Boolean(bundle.popular),
-          });
-        }
-
-        setBundleData(grouped);
-      } catch {
-        setCatalogError("Unable to load bundles.");
-      } finally {
-        setCatalogLoading(false);
-      }
-    };
-
-    void loadBundles();
+    setBundleData(grouped);
+    setCatalogLoading(false);
+    setCatalogError("");
   }, []);
 
   useEffect(() => {

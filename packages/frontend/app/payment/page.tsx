@@ -86,45 +86,7 @@ export default function PaymentPage() {
     setError("");
 
     try {
-      const payload = {
-        bundleId,
-        recipientPhone: recipient,
-        paymentMethod: selectedMethod,
-        idempotencyKey: `order-${Date.now()}`,
-      };
-
-      const response = await fetch("/api/payments/initialize", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const json = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(json?.error || "Unable to initialize payment.");
-      }
-
-      if (json?.status === "paid") {
-        const order = json.order ?? {};
-        const params = new URLSearchParams({
-          network: network || "",
-          bundle: size || "10GB",
-          validity: validity || "30 Days",
-          amount: price || "GH₵ 20.00",
-          recipient: recipient || "",
-          paymentMethod: selectedMethod,
-          transactionId: order.id || "",
-        });
-        router.push(`/processing?${params.toString()}`);
-        return;
-      }
-
-      if (json?.authorizationUrl) {
-        window.location.href = json.authorizationUrl;
-        return;
-      }
-
+      const reference = `TXN-${Date.now()}`;
       const params = new URLSearchParams({
         network: network || "",
         bundle: bundleId || "",
@@ -133,8 +95,9 @@ export default function PaymentPage() {
         amount: price || "GH₵ 20.00",
         recipient: recipient || "",
         paymentMethod: selectedMethod,
+        reference,
       });
-      router.push(`/processing?${params.toString()}`);
+      router.push(`/success?${params.toString()}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to continue to payment.");
     } finally {

@@ -2,9 +2,8 @@
 
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, Clock3, PackageSearch, Search, Truck } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { DashboardShell } from "@/app/components/dashboard-shell";
-import { supabase } from "@/app/lib/supabase/client";
 
 type Order = {
   reference: string;
@@ -15,43 +14,30 @@ type Order = {
   deliveryStatus: string;
 };
 
+const MOCK_ORDERS: Order[] = [
+  {
+    reference: "TXN-20250815-102457",
+    network: "MTN",
+    bundleSize: "10GB",
+    recipientPhone: "024 123 4567",
+    paymentStatus: "paid",
+    deliveryStatus: "delivered",
+  },
+  {
+    reference: "TXN-20250904-440111",
+    network: "Telecel",
+    bundleSize: "20GB",
+    recipientPhone: "055 987 6543",
+    paymentStatus: "paid",
+    deliveryStatus: "processing",
+  },
+];
+
 export default function TrackOrderPage() {
   const [orderId, setOrderId] = useState("");
   const [searchedOrder, setSearchedOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    if (!searchedOrder || !searchedOrder.reference) return;
-
-    const client = supabase;
-    if (!client) return;
-
-    const intervalId = window.setInterval(async () => {
-      const { data: { user }, error: userError } = await client.auth.getUser();
-      if (userError || !user) return;
-
-      const { data: trackedOrder, error } = await client
-        .from("orders")
-        .select("reference, network, bundle_size, recipient_phone, payment_status, delivery_status")
-        .eq("user_id", user.id)
-        .eq("reference", searchedOrder.reference)
-        .maybeSingle();
-
-      if (!error && trackedOrder) {
-        setSearchedOrder({
-          reference: trackedOrder.reference,
-          network: trackedOrder.network,
-          bundleSize: trackedOrder.bundle_size,
-          recipientPhone: trackedOrder.recipient_phone,
-          paymentStatus: trackedOrder.payment_status,
-          deliveryStatus: trackedOrder.delivery_status,
-        });
-      }
-    }, 5000);
-
-    return () => window.clearInterval(intervalId);
-  }, [searchedOrder]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -62,30 +48,12 @@ export default function TrackOrderPage() {
     setSearchedOrder(null);
 
     try {
-      const client = supabase;
-      if (!client) throw new Error("Supabase is not configured.");
+      const trackedOrder = MOCK_ORDERS.find(
+        (order) => order.reference.toLowerCase() === reference.toLowerCase()
+      );
 
-      const { data: { user }, error: userError } = await client.auth.getUser();
-      if (userError || !user) throw new Error("Please sign in to track your order.");
-
-      const { data: trackedOrder, error } = await client
-        .from("orders")
-        .select("reference, network, bundle_size, recipient_phone, payment_status, delivery_status")
-        .eq("user_id", user.id)
-        .eq("reference", reference)
-        .maybeSingle();
-
-      if (error) throw error;
       if (!trackedOrder) throw new Error("Unable to find that order.");
-
-      setSearchedOrder({
-        reference: trackedOrder.reference,
-        network: trackedOrder.network,
-        bundleSize: trackedOrder.bundle_size,
-        recipientPhone: trackedOrder.recipient_phone,
-        paymentStatus: trackedOrder.payment_status,
-        deliveryStatus: trackedOrder.delivery_status,
-      });
+      setSearchedOrder(trackedOrder);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Unable to find that order.");
     } finally {
