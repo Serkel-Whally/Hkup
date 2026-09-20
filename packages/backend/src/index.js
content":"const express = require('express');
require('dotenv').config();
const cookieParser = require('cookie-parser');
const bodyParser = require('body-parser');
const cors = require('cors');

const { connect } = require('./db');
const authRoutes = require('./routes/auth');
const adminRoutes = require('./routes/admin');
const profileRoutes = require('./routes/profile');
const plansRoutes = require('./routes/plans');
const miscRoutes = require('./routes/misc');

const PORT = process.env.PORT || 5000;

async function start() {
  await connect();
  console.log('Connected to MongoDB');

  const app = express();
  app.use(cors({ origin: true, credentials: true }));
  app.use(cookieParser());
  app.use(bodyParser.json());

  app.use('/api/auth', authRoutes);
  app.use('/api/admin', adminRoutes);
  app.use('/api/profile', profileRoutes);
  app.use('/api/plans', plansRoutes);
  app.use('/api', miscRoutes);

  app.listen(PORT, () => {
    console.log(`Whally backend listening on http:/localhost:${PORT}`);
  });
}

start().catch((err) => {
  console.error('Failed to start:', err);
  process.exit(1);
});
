@@ -1,0 +1,60 @@
+const express = require('express');
+const bcrypt = require('bcryptjs');
+const User = require('../models/User');
+const { requireAdmin, requireAuth } = require('../middleware/auth');
+
+const router = express.Router();
+
+router.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body || {};
+
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+
+    const user = await User.findOne({ email: String(email).toLowerCase().trim() });
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid admin credentials' });
+    }
+
+    const roles = (user.roles || []).map((role) => String(role).trim().toLowerCase());
+    if (!roles.includes('admin')) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    const ok = await bcrypt.compare(password, user.passwordHash || '');
+    if (!ok) {
+      return res.status(401).json({ error: 'Invalid admin credentials' });
+    }
+
+    const jwt = require('jsonwebtoken');
+    const token = jwt.sign(
+      { sub: user._id, roles: user.roles, email: user.email },
+      process.env.JWT_SECRET || 'change_this_secret',
+      { expiresIn: '7d' }
+    );
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+    });
+
+    return res.json({ user: user.toPublicJSON(), token });
+  } catch (error) {
+    console.error('Admin login failed:', error);
+    return res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.get('/me', requireAuth, requireAdmin, (req, res) => {
+  return res.json({ user: req.user.toPublicJSON() });
+});
+
+router.get('/users', requireAuth, requireAdmin, async (req, res) => {
+  const users = await User.find({}).select('-passwordHash').sort({ createdAt: -1 }).lean();
+  return res.json({ users });
+});
+
+module.exports = router;
