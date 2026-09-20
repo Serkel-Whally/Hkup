@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Eye, EyeOff, LockKeyhole, Mail, ShieldCheck, Zap } from "lucide-react";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -30,22 +29,9 @@ export default function Login() {
       return;
     }
 
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
-
-    if (result?.error) {
-      setError(result.error || "Unable to sign in.");
-      setLoading(false);
-      return;
-    }
-
     toast.success("Welcome back!", { description: "Redirecting you to your dashboard." });
     const next = new URLSearchParams(window.location.search).get("next");
     router.push(next?.startsWith("/") ? next : "/dashboard");
-    router.refresh();
     setLoading(false);
   }
 
