@@ -109,7 +109,7 @@ CelluLite DATA
 
 Dashboard
 
-Buy Data
+Buy Data 
   MTN
   Telecel
   AirtelTigo
@@ -380,15 +380,23 @@ GH₵20.00
 Recipient Number
 [ 024 XXX XXXX ]
 
-Payment Method
-○ Wallet
-○ Mobile Money
 
 Total
 GH₵20.00
 
-[ Confirm Purchase ]
+[Pay]
 ```
+
+After clicking Pay:
+
+```text
+Recipient Number
+[ 024 XXX XXXX ]
+
+Payment Method
+○ Wallet
+○ Mobile Money
+○ Bank/Debit Card
 
 The recipient number should be clearly separated from the customer's account phone number.
 
@@ -1036,8 +1044,8 @@ Support cases
 Search should work especially well with phone numbers.
 
 ---
-
-# 31. REMOVE/RETHINK CUSTOMER DEBT
+# STRICT AVOID/SKIP #31.
+# 31. REMOVE/RETHINK CUSTOMER DEBT/STRICTLY SKIP THIS
 
 The **Customer Debt Tracker should NOT be part of the CelluLite customer MVP**.
 
