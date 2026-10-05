@@ -172,8 +172,8 @@ export function PaymentModal({
           console.log("Payment successful! Reference:", response.reference);
           toast.success("Payment successful! Processing your order...");
 
-          // Store payment details and redirect to success page
-          const paymentData = {
+          // Store order details for confirmation page
+          const orderData = {
             reference: response.reference,
             email: email,
             amount: amount,
@@ -181,15 +181,18 @@ export function PaymentModal({
             bundleId: bundleId,
             size: size,
             recipient: recipient,
+            validity: validity,
             promoCode: promoCode || null,
+            paymentMethod: paymentMethod,
             timestamp: Date.now(),
+            status: "PENDING_DELIVERY", // Order is paid, waiting for delivery
           };
 
-          localStorage.setItem("lastPaymentData", JSON.stringify(paymentData));
+          localStorage.setItem("lastOrder", JSON.stringify(orderData));
+          setLoading(false);
 
           // Redirect to order confirmation page
           router.push(`/order-confirmation?ref=${response.reference}`);
-          setLoading(false);
         },
         onClose: function () {
           setLoading(false);
@@ -219,10 +222,10 @@ export function PaymentModal({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full sm:max-w-md"
+        className="relative w-full h-full sm:h-auto sm:max-w-md sm:rounded-[20px]"
       >
-        {/* Modal Card */}
-        <div className="flex max-h-[90vh] flex-col overflow-hidden rounded-t-[28px] bg-white sm:rounded-[20px]">
+        {/* Modal Card - Full screen on mobile, overlay on desktop */}
+        <div className="flex h-full sm:max-h-[90vh] flex-col overflow-hidden rounded-t-[28px] sm:rounded-[20px] bg-white">
           {/* Header */}
           <header className="shrink-0 border-b border-slate-100 bg-white px-4 pt-2 sm:px-6 sm:pt-4">
             <div className="mx-auto mb-1 flex h-1 w-10 rounded-full bg-slate-200 sm:hidden" aria-hidden="true" />
@@ -242,7 +245,7 @@ export function PaymentModal({
             </div>
           </header>
 
-          {/* Main Content */}
+          {/* Main Content - Scrollable on mobile */}
           <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
             <div className="mx-auto w-full max-w-md space-y-5 px-4 py-5 sm:px-6">
               {/* Order Summary Card */}
@@ -423,7 +426,7 @@ export function PaymentModal({
             </div>
           </main>
 
-          {/* Footer Buttons - Fixed */}
+          {/* Footer Buttons - Fixed at bottom, full width on mobile */}
           <div className="shrink-0 border-t border-slate-100 bg-white px-4 py-3 sm:px-6 sm:py-4">
             <button
               type="button"
