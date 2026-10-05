@@ -6,7 +6,8 @@ const cors = require('cors');
 
 const { connect } = require('./db');
 const authRoutes = require('./routes/auth');
-const plansRoutes = require('./routes/plans');
+const bundlesRoutes = require('./routes/bundles');
+const ordersRoutes = require('./routes/orders');
 const miscRoutes = require('./routes/misc');
 
 const PORT = process.env.PORT || 5000;
@@ -21,7 +22,8 @@ async function start() {
   app.use(bodyParser.json());
 
   app.use('/api/auth', authRoutes);
-  app.use('/api/plans', plansRoutes);
+  app.use('/api/bundles', bundlesRoutes);
+  app.use('/api/orders', ordersRoutes);
   app.use('/api', miscRoutes);
 
   app.listen(PORT, () => {
@@ -29,7 +31,7 @@ async function start() {
   });
 }
 
-start().catch(err => {
+start().catch((err) => {
   console.error('Failed to start:', err);
   process.exit(1);
 });

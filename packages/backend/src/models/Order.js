@@ -4,6 +4,7 @@ const orderSchema = new Schema({
   orderId: { type: String, required: true, unique: true },
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: false },
   planId: { type: String, default: null },
+  bundleId: { type: String, default: null },
   network: { type: String, default: null },
   bundleSize: { type: String, default: null },
   validity: { type: String, default: null },
