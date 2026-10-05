@@ -1,7 +1,67 @@
+# Dependencies
 node_modules
-.env
-.env.local
-.DS_Store
 **/node_modules
+yarn.lock
+package-lock.json
+pnpm-lock.yaml
+
+# Environment variables
+.env
+.env.*
+.env.local
+.env.*.local
+
+# Build outputs
+.next
 /.next
 /dist
+/build
+/out
+
+# OS and editor files
+.DS_Store
+.AppleDouble
+.LSOverride
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.iml
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing and coverage
+coverage/
+.nyc_output/
+.jest_cache/
+
+# Cache / temp files
+.cache/
+.turbo/
+.temp/
+temp/
+tmp/
+
+# Local database / data files
+*.db
+*.sqlite
+*.sqlite3
+
+# Sensitive or local config
+.env.payments
+.env.payments.example
+.env.local.example
+secrets.json
+
+# Ignore large non-source files that are not part of the app
+Cellulite Business .txt
+fresh-start.txt
+deepseek_html_*.html
