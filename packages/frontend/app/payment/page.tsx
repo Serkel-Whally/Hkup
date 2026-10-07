@@ -1,12 +1,12 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import { PaymentModal } from "./payment-modal";
 import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { PaymentModal } from "../checkout/payment-modal";
 
 function PaymentPageContent() {
   const searchParams = useSearchParams();
-  
+
   const network = searchParams.get("network");
   const bundleId = searchParams.get("bundle");
   const size = searchParams.get("size");
@@ -24,14 +24,20 @@ function PaymentPageContent() {
       price={price}
       recipient={recipient || ""}
       promoCode={promoCode || undefined}
-      onClose={() => window.history.back()}
+      onClose={() => {
+        if (typeof window !== "undefined" && window.history.length > 1) {
+          window.history.back();
+          return;
+        }
+        window.location.href = "/checkout";
+      }}
     />
   );
 }
 
 export default function PaymentPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+    <Suspense fallback={<div className="flex h-screen items-center justify-center">Loading...</div>}>
       <PaymentPageContent />
     </Suspense>
   );
