@@ -97,6 +97,50 @@ export function PaymentModal({
   const emailError = touched && !validateEmail(email) ? "Please enter a valid email address" : "";
   const canSubmit = validateEmail(email) && amount > 0;
 
+  // Create order in backend when initiating payment
+  const createOrder = async () => {
+    try {
+      const orderData = {
+        orderId: `HKUP-${network}-${Date.now()}-${Math.floor(Math.random() * 1000000)}`,
+        bundleId: bundleId,
+        network: network,
+        bundleSize: size,
+        validity: validity,
+        recipientPhone: recipient,
+        amount: amount,
+        currency: "GHS",
+        paymentStatus: "PENDING",
+        orderStatus: "AWAITING_PAYMENT",
+        paymentMethod: paymentMethod === "mobile" ? "Mobile Money" : "Card",
+        paymentProvider: "Paystack",
+        email: email,
+        promoCode: promoCode || null,
+      };
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/orders`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(orderData),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to create order");
+      }
+
+      const createdOrder = await response.json();
+      console.log("Order created successfully:", createdOrder);
+      return createdOrder;
+    } catch (error) {
+      console.error("Error creating order:", error);
+      throw error;
+    }
+  };
+
   const handlePayment = async () => {
     try {
       setTouched(true);
@@ -120,14 +164,17 @@ export function PaymentModal({
       setLoading(true);
       setSubmitError("");
 
+      // Create order in backend first
+      const order = await createOrder();
+
       console.log("Initiating Paystack payment", {
         amount,
         email,
         paymentMethod,
       });
 
-      // Generate a unique reference
-      const reference = `HKUP-${network}-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
+      // Generate a unique reference using the order ID
+      const reference = order?.orderId || `HKUP-${network}-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
 
       // Convert to pesewas (multiply by 100)
       const amountInPesewas = Math.round(amount * 100);
@@ -150,6 +197,7 @@ export function PaymentModal({
           size: size,
           recipient: recipient,
           promo_code: promoCode || null,
+          order_id: order?._id,
           custom_fields: [
             {
               display_name: "Network",
@@ -184,6 +232,7 @@ export function PaymentModal({
             validity: validity,
             promoCode: promoCode || null,
             paymentMethod: paymentMethod,
+            orderId: order?._id,
             timestamp: Date.now(),
             status: "PENDING_DELIVERY", // Order is paid, waiting for delivery
           };
