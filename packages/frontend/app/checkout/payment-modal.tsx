@@ -116,14 +116,15 @@ export function PaymentModal({
         promoCode: promoCode || null,
       };
 
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        ...authHeaders(),
+      };
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/orders`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...authHeaders(),
-          },
+          headers,
           body: JSON.stringify(orderData),
         }
       );

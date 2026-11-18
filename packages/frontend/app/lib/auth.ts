@@ -26,7 +26,7 @@ export function clearAuthSession() {
   }
 }
 
-export function authHeaders() {
+export function authHeaders(): Record<string, string> {
   const session = getAuthSession();
   return session?.token ? { Authorization: `Bearer ${session.token}` } : {};
 }
