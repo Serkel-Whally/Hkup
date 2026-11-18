@@ -6,4 +6,3 @@ Customers can:
 • Choose a payment method
 • Contact the seller(Admin) through WhatsApp
 • View order status
-

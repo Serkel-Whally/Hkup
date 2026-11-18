@@ -1,10 +1,25 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { DashboardShell } from "@/app/components/dashboard-shell";
 import { Bell, CheckCircle2, ChevronRight, Lock, Mail, Phone, ShieldCheck, UserRound } from "lucide-react";
+import { getAuthSession } from "@/app/lib/auth";
 
 export default function ProfilePage() {
+  const [user, setUser] = useState({ name: "Customer", email: "", phone: "" });
+
+  useEffect(() => {
+    const session = getAuthSession();
+    if (session?.user) {
+      setUser({
+        name: session.user.name || "Customer",
+        email: session.user.email,
+        phone: session.user.phone || "",
+      });
+    }
+  }, []);
+
   return (
     <DashboardShell active="/profile">
       <main className="mx-auto max-w-6xl space-y-6 pb-8">
@@ -12,11 +27,11 @@ export default function ProfilePage() {
           <div className="flex flex-col gap-6 border-b border-slate-200 bg-gradient-to-r from-sky-50 via-white to-emerald-50 p-5 md:flex-row md:items-center md:justify-between md:p-7">
             <div className="flex items-center gap-4">
               <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-sky-600 text-xl font-bold text-white shadow-sm">
-                K
+                {user.name.charAt(0).toUpperCase()}
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-2xl font-bold tracking-tight text-slate-900">Kyrios Mensah</h1>
+                  <h1 className="text-2xl font-bold tracking-tight text-slate-900">{user.name}</h1>
                   <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-emerald-700">
                     <CheckCircle2 size={12} /> Active
                   </span>
@@ -42,9 +57,9 @@ export default function ProfilePage() {
           </div>
 
           <div className="grid gap-4 p-5 md:grid-cols-3 md:p-7">
-            <InfoItem icon={<UserRound size={18} />} label="Full name" value="Kyrios Mensah" />
-            <InfoItem icon={<Mail size={18} />} label="Email" value="kyrios@example.com" />
-            <InfoItem icon={<Phone size={18} />} label="Phone" value="024 123 4567" />
+            <InfoItem icon={<UserRound size={18} />} label="Full name" value={user.name} />
+            <InfoItem icon={<Mail size={18} />} label="Email" value={user.email || "Not provided"} />
+            <InfoItem icon={<Phone size={18} />} label="Phone" value={user.phone || "Not provided"} />
           </div>
         </section>
 

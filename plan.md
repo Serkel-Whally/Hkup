@@ -1,10 +1,3 @@
-Yes. The main problem with the current plan is that it **mixes three different products together**:
-
-1. **CelluLite Data customer app**
-2. **CelluLite Data administration panel**
-3. **A generic product/inventory/debt-management system**
-
-For CelluLite Data, the third part introduces things that don't fit the business well—especially generic products, stock quantities, business onboarding, customer debt, and subscriptions.
 
 Since **CelluLite Data sells mobile data bundles**, I would restructure the entire project like this.
 
@@ -135,30 +128,30 @@ Phase 1 is complete only when all of the following are true:
 
 ### Frontend
 
-- [ ] finalise landing experience and conversion-focused CTA
-- [ ] complete login page and auth state handling
-- [ ] complete signup page and validation flow
-- [ ] complete dashboard shell with real user context
-- [ ] complete buy-data flow with network and bundle selection
-- [ ] complete checkout form with recipient input and payment method selection
-- [ ] maintain clean customer-only navigation
+- [x] finalise landing experience and conversion-focused CTA
+- [x] complete login page and auth state handling
+- [x] complete signup page and validation flow
+- [x] complete dashboard shell with real user context
+- [x] complete buy-data flow with network and bundle selection
+- [x] complete checkout form with recipient input and payment method selection
+- [x] maintain clean customer-only navigation
 
 ### Backend
 
-- [ ] standardise environment and config setup
-- [ ] confirm MongoDB connectivity and schema conventions
-- [ ] validate auth routes and JWT flow
-- [ ] complete plan listing and bundle data contract
-- [ ] confirm order creation contract and status states
-- [ ] implement payment verification webhook foundation
-- [ ] ensure provider and payment events are backend-driven
+- [x] standardise environment and config setup
+- [x] confirm MongoDB connectivity and schema conventions
+- [x] validate auth routes and JWT flow
+- [x] complete plan listing and bundle data contract
+- [x] confirm order creation contract and status states
+- [x] implement payment verification webhook foundation
+- [x] ensure provider and payment events are backend-driven
 
 ### Product guardrails
 
-- [ ] remove generic business/inventory language from the MVP roadmap
-- [ ] ensure all checkout and order flows match mobile-data product logic
-- [ ] keep admin features out of this phase
-- [ ] avoid scope creep into wallet, debt, subscriptions, or supplier inventory features
+- [x] remove generic business/inventory language from the MVP roadmap
+- [x] ensure all checkout and order flows match mobile-data product logic
+- [x] keep admin features out of this phase
+- [x] avoid scope creep into wallet, debt, subscriptions, or supplier inventory features
 
 ## Phase 1 Definition of Done
 

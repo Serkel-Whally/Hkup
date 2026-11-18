@@ -9,6 +9,7 @@ const authRoutes = require('./routes/auth');
 const bundlesRoutes = require('./routes/bundles');
 const ordersRoutes = require('./routes/orders');
 const miscRoutes = require('./routes/misc');
+const paymentsRoutes = require('./routes/payments');
 
 const PORT = process.env.PORT || 5000;
 
@@ -19,6 +20,7 @@ async function start() {
   const app = express();
   app.use(cors({ origin: true, credentials: true }));
   app.use(cookieParser());
+  app.use('/api/payments', paymentsRoutes);
   app.use(bodyParser.json());
 
   app.use('/api/auth', authRoutes);

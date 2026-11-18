@@ -25,4 +25,14 @@ async function initializeTransaction({ email, amount, reference, callback_url })
   throw new Error('Paystack initialize failed');
 }
 
-module.exports = { initializeTransaction };
+async function verifyTransaction(reference) {
+  if (!PAYSTACK_SECRET_KEY) throw new Error('Paystack secret key not set');
+  const res = await axios.get(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
+    headers: {
+      Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+    },
+  });
+  return res.data && res.data.status ? res.data.data : null;
+}
+
+module.exports = { initializeTransaction, verifyTransaction };

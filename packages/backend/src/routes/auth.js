@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'change_this_secret';
@@ -78,6 +79,18 @@ router.post('/login', async (req, res) => {
 
 router.post('/logout', (req, res) => {
   res.json({ ok: true });
+});
+
+router.get('/me', requireAuth, (req, res) => {
+  res.json({
+    user: {
+      id: req.user._id,
+      email: req.user.email,
+      name: req.user.name,
+      phone: req.user.phone,
+      roles: req.user.roles,
+    },
+  });
 });
 
 module.exports = router;

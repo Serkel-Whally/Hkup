@@ -1,13 +1,13 @@
 // payments routes: paystack + hubtel (basic integration)
 const express = require('express');
 const crypto = require('crypto');
-const { initializeTransaction } = require('../services/paystack');
+const { initializeTransaction, verifyTransaction } = require('../services/paystack');
 const Order = require('../models/Order');
 
 const router = express.Router();
 
 // Initialize Paystack transaction for an existing order
-router.post('/paystack/initialize', async (req, res) => {
+router.post('/paystack/initialize', express.json(), async (req, res) => {
   try {
     const { orderId, email, callback_url } = req.body || {};
     if (!orderId) return res.status(400).json({ error: 'orderId required' });
@@ -20,6 +20,43 @@ router.post('/paystack/initialize', async (req, res) => {
   } catch (err) {
     console.error('Paystack init error:', err.message || err);
     return res.status(500).json({ error: err.message || 'Paystack init failed' });
+  }
+});
+
+router.post('/paystack/verify', express.json(), async (req, res) => {
+  try {
+    const { reference } = req.body || {};
+    if (!reference) return res.status(400).json({ error: 'reference required' });
+
+    const verification = await verifyTransaction(reference);
+    if (!verification) return res.status(502).json({ error: 'Paystack verification failed' });
+
+    const order = await Order.findOne({ orderId: reference });
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+
+    if (verification.status === 'success') {
+      if (Number(verification.amount) !== Math.round(order.amount * 100)) {
+        order.paymentStatus = 'FAILED';
+        order.orderStatus = 'FAILED';
+        order.failureReason = 'Payment amount mismatch';
+        await order.save();
+        return res.status(400).json({ error: 'Payment amount mismatch', order });
+      }
+      order.paymentStatus = 'PAID';
+      order.orderStatus = 'PAID';
+      order.paidAt = new Date();
+      order.providerPaymentId = verification.id ? String(verification.id) : reference;
+      await order.save();
+    } else {
+      order.paymentStatus = 'FAILED';
+      order.orderStatus = 'FAILED';
+      await order.save();
+    }
+
+    return res.json({ ok: true, order });
+  } catch (err) {
+    console.error('Paystack verify error:', err.message || err);
+    return res.status(500).json({ error: err.message || 'Paystack verification failed' });
   }
 });
 
@@ -51,12 +88,21 @@ router.post('/paystack/webhook', express.raw({ type: 'application/json' }), asyn
       if (order) {
         const status = data.status || data.gateway_response || 'success';
         if (status === 'success' || data.status === 'success') {
-          order.status = 'paid';
+          if (data.amount !== undefined && Number(data.amount) !== Math.round(order.amount * 100)) {
+            order.paymentStatus = 'FAILED';
+            order.orderStatus = 'FAILED';
+            order.failureReason = 'Payment amount mismatch';
+            await order.save();
+            return res.status(400).json({ received: true, error: 'Payment amount mismatch' });
+          }
+          order.paymentStatus = 'PAID';
+          order.orderStatus = 'PAID';
           order.paidAt = new Date();
           order.providerPaymentId = data.id || data.reference || null;
           await order.save();
         } else {
-          order.status = 'failed';
+          order.paymentStatus = 'FAILED';
+          order.orderStatus = 'FAILED';
           await order.save();
         }
       }
@@ -70,7 +116,7 @@ router.post('/paystack/webhook', express.raw({ type: 'application/json' }), asyn
 });
 
 // Hubtel integration (basic/sandbox placeholder)
-router.post('/hubtel/initialize', async (req, res) => {
+router.post('/hubtel/initialize', express.json(), async (req, res) => {
   // Hubtel integration requires API credentials; this is a simplified placeholder
   try {
     const { orderId, callback_url } = req.body || {};
@@ -96,8 +142,14 @@ router.post('/hubtel/webhook', express.json(), async (req, res) => {
     const order = await Order.findOne({ orderId });
     if (!order) return res.status(404).json({ error: 'Order not found' });
 
-    order.status = status === 'success' ? 'paid' : 'failed';
-    if (order.status === 'paid') order.paidAt = new Date();
+    if (status === 'success') {
+      order.paymentStatus = 'PAID';
+      order.orderStatus = 'PAID';
+      order.paidAt = new Date();
+    } else {
+      order.paymentStatus = 'FAILED';
+      order.orderStatus = 'FAILED';
+    }
     await order.save();
 
     res.json({ ok: true, order });

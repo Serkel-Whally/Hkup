@@ -27,6 +27,7 @@ import { CheckoutPage } from "@/app/checkout/checkout-form";
 import AnnouncementPopup from "./announcement-popup";
 import { toast } from "sonner";
 import { getStoredNotifications } from "@/app/lib/notifications";
+import { authHeaders, getAuthSession } from "@/app/lib/auth";
 
 export function DashboardShell({ children, active = "/dashboard", hideNavigation = false }: any) {
 	const pathname = usePathname();
@@ -275,15 +276,45 @@ export function DashboardHome() {
 	useEffect(() => {
 		const hour = new Date().getHours();
 		setGreeting(hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening");
-		setUserName("your account");
-		setWalletBalance("GH₵ 0.00");
-		setOrders([]);
-		setPopularBundles([
-			{ id: "mtn-1", network: "MTN", size: "1GB", price: "GH₵ 3.50", validity: "1 day", popular: true },
-			{ id: "mtn-2", network: "MTN", size: "5GB", price: "GH₵ 10.00", validity: "7 days", popular: true },
-			{ id: "telecel-1", network: "Telecel", size: "2GB", price: "GH₵ 6.00", validity: "3 days", popular: true },
-			{ id: "airtel-1", network: "AirtelTigo", size: "10GB", price: "GH₵ 15.00", validity: "30 days", popular: true },
-		]);
+		const session = getAuthSession();
+		setUserName(session?.user.name || session?.user.email || "your account");
+
+		const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+		const loadData = async () => {
+			try {
+				const [bundlesResponse, ordersResponse] = await Promise.all([
+					fetch(`${apiUrl}/api/bundles`),
+					fetch(`${apiUrl}/api/orders`, { headers: authHeaders() }),
+				]);
+				if (bundlesResponse.ok) {
+					const bundles = await bundlesResponse.json() as any[];
+					setPopularBundles(bundles.filter((bundle) => bundle.isPopular).slice(0, 6).map((bundle) => ({
+						id: bundle.bundleId,
+						network: bundle.network,
+						size: bundle.size,
+						price: `GH₵ ${Number(bundle.price).toFixed(2)}`,
+						validity: bundle.validity,
+						popular: true,
+					})));
+				}
+				if (ordersResponse.ok) {
+					const data = await ordersResponse.json();
+					setOrders((data.orders || []).map((order: any) => ({
+						id: order.orderId,
+						network: order.network,
+						bundleSize: order.bundleSize,
+						recipientPhone: order.recipientPhone,
+						amount: order.amount,
+						paymentStatus: order.paymentStatus,
+						deliveryStatus: order.orderStatus,
+						createdAt: order.createdAt,
+					})));
+				}
+			} catch {
+				setPopularBundles([]);
+			}
+		};
+		loadData();
 	}, []);
 
 	const transactions = orders.slice(0, 4).map((order) => ({

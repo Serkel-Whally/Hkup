@@ -12,6 +12,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { toast } from "sonner";
+import { authHeaders } from "@/app/lib/auth";
 
 const NETWORKS = [
   { id: "mtn", name: "MTN", logo: "/mtn.svg" },
@@ -101,13 +102,11 @@ export function PaymentModal({
   const createOrder = async () => {
     try {
       const orderData = {
-        orderId: `HKUP-${network}-${Date.now()}-${Math.floor(Math.random() * 1000000)}`,
         bundleId: bundleId,
         network: network,
         bundleSize: size,
         validity: validity,
         recipientPhone: recipient,
-        amount: amount,
         currency: "GHS",
         paymentStatus: "PENDING",
         orderStatus: "AWAITING_PAYMENT",
@@ -118,11 +117,12 @@ export function PaymentModal({
       };
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/orders`,
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/orders`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            ...authHeaders(),
           },
           body: JSON.stringify(orderData),
         }
@@ -133,8 +133,7 @@ export function PaymentModal({
       }
 
       const createdOrder = await response.json();
-      console.log("Order created successfully:", createdOrder);
-      return createdOrder;
+      return createdOrder.order;
     } catch (error) {
       console.error("Error creating order:", error);
       throw error;
@@ -216,8 +215,18 @@ export function PaymentModal({
             },
           ],
         },
-        callback: function (response: any) {
+        callback: async function (response: any) {
           console.log("Payment successful! Reference:", response.reference);
+          try {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+            await fetch(`${apiUrl}/api/payments/paystack/verify`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ reference: response.reference }),
+            });
+          } catch (error) {
+            console.error("Could not verify payment from the frontend callback:", error);
+          }
           toast.success("Payment successful! Processing your order...");
 
           // Store order details for confirmation page
