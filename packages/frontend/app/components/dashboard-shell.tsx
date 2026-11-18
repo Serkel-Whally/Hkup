@@ -27,7 +27,7 @@ import { CheckoutPage } from "@/app/checkout/checkout-form";
 import AnnouncementPopup from "./announcement-popup";
 import { toast } from "sonner";
 import { getStoredNotifications } from "@/app/lib/notifications";
-import { authHeaders, getAuthSession } from "@/app/lib/auth";
+import { authHeaders, clearAuthSession, getAuthSession } from "@/app/lib/auth";
 
 export function DashboardShell({ children, active = "/dashboard", hideNavigation = false }: any) {
 	const pathname = usePathname();
@@ -75,7 +75,8 @@ export function DashboardShell({ children, active = "/dashboard", hideNavigation
 
 		const loadUser = () => {
 			if (!isMounted) return;
-			setUserName("Customer");
+			const session = getAuthSession();
+			setUserName(session?.user.name || session?.user.email || "Customer");
 		};
 
 		loadUser();
@@ -87,6 +88,7 @@ export function DashboardShell({ children, active = "/dashboard", hideNavigation
 	}, [pathname, redirectToLogin]);
 
 	async function logout() {
+		clearAuthSession();
 		router.replace("/login");
 		toast.success("Logged out", { description: "You have been signed out securely." });
 	}
@@ -269,7 +271,7 @@ export function DashboardHome() {
 	} | null>(null);
 	const [greeting, setGreeting] = useState("Good morning");
 	const [userName, setUserName] = useState("your account");
-	const [walletBalance, setWalletBalance] = useState("GH₵ 0.00");
+	const [walletBalance, setWalletBalance] = useState<string | null>(null);
 	const [orders, setOrders] = useState<DashboardOrder[]>([]);
 	const [popularBundles, setPopularBundles] = useState<any[]>([]);
 
@@ -282,9 +284,10 @@ export function DashboardHome() {
 		const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 		const loadData = async () => {
 			try {
-				const [bundlesResponse, ordersResponse] = await Promise.all([
+				const [bundlesResponse, ordersResponse, walletResponse] = await Promise.all([
 					fetch(`${apiUrl}/api/bundles`),
 					fetch(`${apiUrl}/api/orders`, { headers: authHeaders() }),
+					fetch(`${apiUrl}/api/wallets`, { headers: authHeaders() }),
 				]);
 				if (bundlesResponse.ok) {
 					const bundles = await bundlesResponse.json() as any[];
@@ -310,8 +313,15 @@ export function DashboardHome() {
 						createdAt: order.createdAt,
 					})));
 				}
+				if (walletResponse.ok) {
+					const wallet = await walletResponse.json();
+					setWalletBalance(`GH₵ ${Number(wallet.balance).toFixed(2)}`);
+				} else {
+					setWalletBalance("Unavailable");
+				}
 			} catch {
 				setPopularBundles([]);
+				setWalletBalance("Unavailable");
 			}
 		};
 		loadData();
@@ -324,7 +334,7 @@ export function DashboardHome() {
 		recipient: order.recipientPhone,
 		amount: typeof order.amount === "string" && order.amount.startsWith("GH₵") ? order.amount : `GH₵ ${String(order.amount ?? "0.00")}`,
 		datetime: new Intl.DateTimeFormat("en-GH", { dateStyle: "medium", timeStyle: "short" }).format(new Date(order.createdAt)),
-		status: String(order.paymentStatus ?? "").toUpperCase() === "FAILED" || String(order.deliveryStatus ?? "").toUpperCase() === "FAILED" ? "Failed" : String(order.paymentStatus ?? "").toUpperCase() === "PAID" && String(order.deliveryStatus ?? "").toUpperCase() === "DELIVERED" ? "Successful" : "Processing",
+		status: ["FAILED", "CANCELLED"].includes(String(order.deliveryStatus ?? "").toUpperCase()) || String(order.paymentStatus ?? "").toUpperCase() === "FAILED" ? "Failed" : String(order.deliveryStatus ?? "").toUpperCase() === "COMPLETED" ? "Successful" : "Processing",
 	}));
 
 	const handlePopularBundleSelect = (bundle: any) => {
@@ -367,7 +377,7 @@ export function DashboardHome() {
 
 			{/* Wallet Section */}
 			<section className="w-full">
-				<WalletCard amount={walletBalance} onFund={() => router.push("/wallet")} />
+				<WalletCard amount={walletBalance ?? "Loading..."} onFund={() => router.push("/wallet")} />
 			</section>
 
 			{/* Buy Data Section */}
@@ -413,7 +423,7 @@ export function DashboardHome() {
 					</div>
 					{transactions.length > 0 ? <ul className="space-y-3" role="list">
 						{transactions.map((t) => (
-							<TransactionItem key={t.id} transaction={t} href="/transactions" />
+							<TransactionItem key={t.id} transaction={t} href={`/transactions/${encodeURIComponent(t.id)}`} />
 						))}
 					</ul> : <p className="py-6 text-sm text-slate-500">No transactions yet.</p>}
 				</div>

@@ -217,41 +217,27 @@ export function PaymentModal({
           ],
         },
         callback: async function (response: any) {
-          console.log("Payment successful! Reference:", response.reference);
           try {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-            await fetch(`${apiUrl}/api/payments/paystack/verify`, {
+            const verificationResponse = await fetch(`${apiUrl}/api/payments/paystack/verify`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ reference: response.reference }),
             });
+            const verification = await verificationResponse.json();
+            if (!verificationResponse.ok || verification.order?.paymentStatus !== "PAID") {
+              throw new Error(verification.error || "Payment could not be verified yet.");
+            }
+
+            toast.success("Payment verified. Your order is being processed.");
+            setLoading(false);
+            router.push(`/transactions/${encodeURIComponent(order.orderId)}`);
           } catch (error) {
-            console.error("Could not verify payment from the frontend callback:", error);
+            const message = error instanceof Error ? error.message : "Payment could not be verified yet.";
+            setSubmitError(message);
+            toast.error(message);
+            setLoading(false);
           }
-          toast.success("Payment successful! Processing your order...");
-
-          // Store order details for confirmation page
-          const orderData = {
-            reference: response.reference,
-            email: email,
-            amount: amount,
-            network: network,
-            bundleId: bundleId,
-            size: size,
-            recipient: recipient,
-            validity: validity,
-            promoCode: promoCode || null,
-            paymentMethod: paymentMethod,
-            orderId: order?._id,
-            timestamp: Date.now(),
-            status: "PENDING_DELIVERY", // Order is paid, waiting for delivery
-          };
-
-          localStorage.setItem("lastOrder", JSON.stringify(orderData));
-          setLoading(false);
-
-          // Redirect to order confirmation page
-          router.push(`/order-confirmation?ref=${response.reference}`);
         },
         onClose: function () {
           setLoading(false);

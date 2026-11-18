@@ -46,10 +46,10 @@ This document outlines the 6-phase development plan for the CelluLite Data platf
 - [x] Buy Data page (network and bundle selection)
 - [x] Checkout form (recipient number, payment methods)
 - [x] Profile page (basic structure)
-- [ ] Transactions page (list of orders)
-- [ ] Transaction details page
-- [ ] Wallet page (balance, funding)
-- [ ] Wallet funding flow
+- [x] Transactions page (list of orders)
+- [x] Transaction details page
+- [x] Wallet page (balance, funding)
+- [x] Wallet funding flow
 
 ### Key Pages to Complete
 | Page | Status | Note |
@@ -57,21 +57,18 @@ This document outlines the 6-phase development plan for the CelluLite Data platf
 | Landing | ✅ Complete | Live and styled |
 | Login | ✅ Complete | Functional with auth |
 | Signup | ✅ Complete | Full registration flow |
-| Dashboard | 🔄 Partial | Shell exists, needs content |
+| Dashboard | ✅ Complete | Loads account context, bundles, orders, and wallet balance |
 | Buy Data | ✅ Mostly Complete | Network/bundle selection works |
-| Checkout | 🔄 Partial | Form structure exists, payment method selection incomplete |
-| Profile | 🔄 Partial | Basic layout only |
-| Transactions | ❌ Not Started | Needs orders API integration |
-| Transaction Details | ❌ Not Started | Needs order detail API |
-| Wallet | ❌ Not Started | Needs wallet ledger system |
+| Checkout | ✅ Complete | Recipient and payment selection with server-side payment verification |
+| Profile | 🔄 Partial | Displays account details; profile editing and preferences remain |
+| Transactions | ✅ Complete | Loads the signed-in customer's orders from the backend |
+| Transaction Details | ✅ Complete | Shows an owned order and its payment/delivery status |
+| Wallet | ✅ Complete | Shows settled funding balance and activity; wallet spending remains Phase 3 |
 
 ### What's Left
-- Complete transaction history page
-- Complete transaction detail view
-- Build wallet balance display
-- Build wallet funding flow
-- Add "Fund Wallet" modal/page
-- Integrate real wallet balance from backend
+- [ ] Complete profile editing and account preference actions
+- [ ] Validate Paystack funding and order flows with configured provider credentials and deployed webhook
+- [ ] Add wallet debit/refund ledger operations as part of Phase 3
 
 ---
 
@@ -85,7 +82,7 @@ This document outlines the 6-phase development plan for the CelluLite Data platf
 - [ ] Order system (basic Order model, needs expansion)
 - [x] Payment system (webhook route stubbed)
 - [ ] Wallet ledger (transaction history)
-- [ ] Payment verification (webhook processing)
+- [x] Payment verification (Paystack webhook processing)
 - [ ] Provider integration (mock in place)
 - [ ] Order processing workflow (documented, not fully automated)
 
@@ -93,9 +90,9 @@ This document outlines the 6-phase development plan for the CelluLite Data platf
 - ✅ `/api/plans` — List and create plans
 - ✅ `/api/plans/orders` — Create orders
 - ✅ `/api/auth` — Registration, login, logout
-- 🔄 `/api/payments/webhook` — Stub needs real Paystack/Stripe integration
-- ❌ `/api/wallets` — Not yet implemented
-- ❌ `/api/transactions` — Not yet implemented
+- ✅ `/api/payments/paystack/webhook` — Verifies Paystack signatures and settles matching order or wallet funding
+- 🔄 `/api/wallets` — Authenticated balance, funding initialization, and verified funding history; debit/refund entries remain
+- ✅ `/api/orders` — Creates orders and serves authenticated order history/details
 
 ### Order Processing Workflow (From plan.md section 50)
 
@@ -131,8 +128,8 @@ Customer notified
 - `Plan` ✅ (exists)
 - `Order` (partial)
 - `User` ✅ (exists)
-- `Wallet` (needs creation)
-- `WalletTransaction` (needs creation)
+- `Wallet` (balance is currently derived from completed ledger entries; no separate wallet document)
+- `WalletTransaction` (funding entries implemented; debit/refund entries remain)
 - `Payment` (needs creation)
 - `Receipt` (needs creation)
 - `Provider` (needs creation)
@@ -437,14 +434,14 @@ yarn dev
 ## Next Steps (Immediate)
 
 ### High Priority (Complete Phase 2 & 3)
-1. ✅ Dashboard — Load real user data and wallet balance
-2. ❌ Transactions page — Display all orders for current user
-3. ❌ Transaction details — Show single order with timeline
-4. ❌ Wallet page — Show balance and transaction history
-5. ❌ Wallet funding flow — UI for adding funds
-6. ❌ Complete order model schema in backend
-7. ❌ Create wallet ledger system
-8. ❌ Implement real payment verification (Paystack/Stripe)
+1. ✅ Dashboard — Loads real user data, orders, bundles, and wallet balance
+2. ✅ Transactions page — Displays the signed-in user's orders
+3. ✅ Transaction details — Shows an owned order and current lifecycle statuses
+4. ✅ Wallet page — Shows backend balance and funding activity
+5. ✅ Wallet funding flow — Initializes and verifies Paystack funding server-side
+6. ❌ Complete order lifecycle and model for provider processing
+7. 🔄 Extend wallet ledger with purchase debits and refunds
+8. 🔄 Validate Paystack end-to-end with production credentials and webhook configuration
 
 ### Medium Priority (Phase 4)
 1. Build admin dashboard shell
@@ -460,6 +457,6 @@ yarn dev
 
 ---
 
-**Last Updated**: 2026-10-05
+**Last Updated**: 2026-11-18
 **Current Phase**: Phase 2-3 (Customer UI & Backend Commerce)
 **Status**: MVP in active development

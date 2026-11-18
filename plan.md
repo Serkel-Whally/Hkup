@@ -138,13 +138,13 @@ Phase 1 is complete only when all of the following are true:
 
 ### Backend
 
-- [x] standardise environment and config setup
+- [ ] standardise environment and config setup
 - [x] confirm MongoDB connectivity and schema conventions
 - [x] validate auth routes and JWT flow
 - [x] complete plan listing and bundle data contract
 - [x] confirm order creation contract and status states
 - [x] implement payment verification webhook foundation
-- [x] ensure provider and payment events are backend-driven
+- [ ] ensure provider and payment events are backend-driven
 
 ### Product guardrails
 

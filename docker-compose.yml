@@ -16,6 +16,7 @@ services:
     environment:
       - PORT=5000
       - MONGODB_URI=mongodb://mongo:27017/whally
+      - FRONTEND_URL=http://localhost:3000
       - JWT_SECRET=change_this_secret
       - SEED_ADMIN_EMAIL=admin@whally.local
       - SEED_ADMIN_PASSWORD=ChangeMe123!

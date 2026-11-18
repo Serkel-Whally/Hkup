@@ -3,6 +3,8 @@ const express = require('express');
 const crypto = require('crypto');
 const { initializeTransaction, verifyTransaction } = require('../services/paystack');
 const Order = require('../models/Order');
+const WalletTransaction = require('../models/WalletTransaction');
+const { settleWalletFunding } = require('../services/wallet');
 
 const router = express.Router();
 
@@ -35,12 +37,15 @@ router.post('/paystack/verify', express.json(), async (req, res) => {
     if (!order) return res.status(404).json({ error: 'Order not found' });
 
     if (verification.status === 'success') {
-      if (Number(verification.amount) !== Math.round(order.amount * 100)) {
+      if (
+        Number(verification.amount) !== Math.round(order.amount * 100) ||
+        String(verification.currency || '').toUpperCase() !== order.currency
+      ) {
         order.paymentStatus = 'FAILED';
         order.orderStatus = 'FAILED';
-        order.failureReason = 'Payment amount mismatch';
+        order.failureReason = 'Payment amount or currency mismatch';
         await order.save();
-        return res.status(400).json({ error: 'Payment amount mismatch', order });
+        return res.status(400).json({ error: 'Payment amount or currency mismatch', order });
       }
       order.paymentStatus = 'PAID';
       order.orderStatus = 'PAID';
@@ -65,50 +70,61 @@ router.post('/paystack/webhook', express.raw({ type: 'application/json' }), asyn
   try {
     const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY || '';
     const signature = req.headers['x-paystack-signature'];
-    const rawBody = req.body; // Buffer
-    if (!signature || !PAYSTACK_SECRET_KEY) {
+    const rawBody = req.body;
+    if (typeof signature !== 'string' || !PAYSTACK_SECRET_KEY || !Buffer.isBuffer(rawBody)) {
       console.warn('Missing signature or PAYSTACK_SECRET_KEY');
       return res.status(400).end();
     }
 
     const computed = crypto.createHmac('sha512', PAYSTACK_SECRET_KEY).update(rawBody).digest('hex');
-    if (computed !== signature) {
+    const computedBuffer = Buffer.from(computed, 'hex');
+    const signatureBuffer = Buffer.from(signature, 'hex');
+    if (
+      computedBuffer.length !== signatureBuffer.length ||
+      !crypto.timingSafeEqual(computedBuffer, signatureBuffer)
+    ) {
       console.warn('Invalid Paystack signature');
       return res.status(400).end();
     }
 
     const payload = JSON.parse(rawBody.toString('utf8'));
-    // Handle event
-    const event = payload.event || payload.event;
-    const data = payload.data || payload;
-    const reference = data.reference || (data && data.tx_ref) || null;
+    const event = payload.event;
+    const data = payload.data || {};
+    const reference = data.reference;
 
-    if (reference) {
-      const order = await Order.findOne({ orderId: reference });
-      if (order) {
-        const status = data.status || data.gateway_response || 'success';
-        if (status === 'success' || data.status === 'success') {
-          if (data.amount !== undefined && Number(data.amount) !== Math.round(order.amount * 100)) {
-            order.paymentStatus = 'FAILED';
-            order.orderStatus = 'FAILED';
-            order.failureReason = 'Payment amount mismatch';
-            await order.save();
-            return res.status(400).json({ received: true, error: 'Payment amount mismatch' });
-          }
-          order.paymentStatus = 'PAID';
-          order.orderStatus = 'PAID';
-          order.paidAt = new Date();
-          order.providerPaymentId = data.id || data.reference || null;
-          await order.save();
-        } else {
-          order.paymentStatus = 'FAILED';
-          order.orderStatus = 'FAILED';
-          await order.save();
-        }
-      }
+    if (!reference || !['charge.success', 'charge.failed'].includes(event)) {
+      return res.json({ received: true });
     }
 
-    res.json({ received: true });
+    const walletFunding = await WalletTransaction.findOne({ reference });
+    if (walletFunding) {
+      await settleWalletFunding(reference, data);
+      return res.json({ received: true });
+    }
+
+    const order = await Order.findOne({ orderId: reference });
+    if (!order) return res.json({ received: true });
+
+    const paymentSucceeded = event === 'charge.success'
+      && data.status === 'success'
+      && Number(data.amount) === Math.round(order.amount * 100)
+      && String(data.currency || '').toUpperCase() === order.currency;
+
+    if (paymentSucceeded) {
+      order.paymentStatus = 'PAID';
+      order.orderStatus = 'PAID';
+      order.paidAt = new Date();
+      order.providerPaymentId = data.id ? String(data.id) : reference;
+    } else {
+      order.paymentStatus = 'FAILED';
+      order.orderStatus = 'FAILED';
+      order.failureReason = event === 'charge.success'
+        ? 'Payment amount or currency mismatch'
+        : 'Payment was not successful';
+    }
+    await order.save();
+
+    return res.json({ received: true });
   } catch (err) {
     console.error('Paystack webhook handling error', err);
     res.status(500).end();

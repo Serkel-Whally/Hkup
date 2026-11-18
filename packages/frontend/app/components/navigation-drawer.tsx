@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { ArrowLeftRight, Diamond, Headset, House, LogOut, UserRound, WalletCards, X } from "lucide-react";
+import { clearAuthSession } from "@/app/lib/auth";
 
 type NavigationDrawerProps = {
   open: boolean;
@@ -26,8 +27,9 @@ export default function NavigationDrawer({ open, activePath, onClose }: Navigati
   const router = useRouter();
 
   const handleLogout = async () => {
+    clearAuthSession();
     onClose();
-    router.push("/login");
+    router.replace("/login");
   };
 
   useEffect(() => {

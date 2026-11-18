@@ -10,6 +10,7 @@ const bundlesRoutes = require('./routes/bundles');
 const ordersRoutes = require('./routes/orders');
 const miscRoutes = require('./routes/misc');
 const paymentsRoutes = require('./routes/payments');
+const walletsRoutes = require('./routes/wallets');
 
 const PORT = process.env.PORT || 5000;
 
@@ -27,6 +28,7 @@ async function start() {
   app.use('/api/bundles', bundlesRoutes);
   app.use('/api/orders', ordersRoutes);
   app.use('/api', miscRoutes);
+  app.use('/api/wallets', walletsRoutes);
 
   app.listen(PORT, () => {
     console.log(`Whally backend listening on http://localhost:${PORT}`);
