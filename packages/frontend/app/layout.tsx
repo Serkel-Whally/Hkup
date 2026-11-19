@@ -4,7 +4,7 @@ import { GlobalToaster } from "./components/global-toaster";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "xBundle",
+  title: "Cellulite Bundle",
   description: "Buy data bundles for all networks instantly. Fast, reliable and always affordable.",
   icons: {
     icon: "/cellulite_logo_icon.svg"

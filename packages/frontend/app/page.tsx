@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Monitor, Moon, Sun } from "lucide-react";
+import { FooterLinks } from "./components/footer-links";
 
 const networks = [
   { name: "MTN", logo: "/mtn.svg", color: "bg-yellow-100" },
@@ -49,7 +51,7 @@ export default function LandingPage() {
       <main className="min-h-screen bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-slate-50">
         <header className="border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
           <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8">
-            <Link href="/" className="text-xl font-bold tracking-tight text-sky-700 dark:text-lime-400">xBundle</Link>
+            <Link href="/" className="text-xl font-bold tracking-tight text-sky-700 dark:text-lime-400">Cellulite Bundle</Link>
             <nav className="flex items-center gap-3" aria-label="Account navigation">
               <Link href="/login" className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">Log in</Link>
               <Link href="/signup" className="rounded-xl bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-sky-700">Create account</Link>
@@ -90,7 +92,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="overflow-hidden border-y border-slate-200 bg-white py-5 dark:border-slate-800 dark:bg-slate-900" aria-label="xBundle benefits">
+        <section className="overflow-hidden border-y border-slate-200 bg-white py-5 dark:border-slate-800 dark:bg-slate-900" aria-label="Cellulite Bundle benefits">
           <div className="ticker-track flex w-max" aria-hidden="true">
             {[0, 1].map((copy) => (
               <div key={copy} className="flex shrink-0 items-center gap-8 px-4">
@@ -105,7 +107,7 @@ export default function LandingPage() {
           <p className="sr-only">{tickerItems.join(", ")}</p>
         </section>
 
-        <section id="about" className="border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+        <section className="border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
           <div className="mx-auto grid max-w-7xl gap-6 px-5 py-12 sm:grid-cols-3 sm:px-8">
             {[{ title: "Affordable bundles", text: "Find a plan that fits your budget." }, { title: "Secure payments", text: "Your payment is verified before processing." }, { title: "Track every order", text: "Keep your purchase history in one place." }].map((item) => (
               <div key={item.title} className="rounded-2xl border border-slate-200 p-5 dark:border-slate-700"><h2 className="font-bold text-slate-900 dark:text-white">{item.title}</h2><p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{item.text}</p></div>
@@ -116,23 +118,18 @@ export default function LandingPage() {
         <footer className="border-t border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-950">
           <div className="mx-auto max-w-7xl px-5 py-8 sm:px-8">
             <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-              <Link href="/" className="text-lg font-bold tracking-tight text-sky-700 dark:text-lime-400">xBundle</Link>
-              <nav className="flex flex-wrap gap-x-6 gap-y-3 text-sm font-medium text-slate-600 dark:text-slate-300" aria-label="Footer navigation">
-                <Link href="/support" className="hover:text-sky-700 dark:hover:text-lime-400">Support</Link>
-                <Link href="#about" className="hover:text-sky-700 dark:hover:text-lime-400">About</Link>
-                <Link href="/privacy" className="hover:text-sky-700 dark:hover:text-lime-400">Privacy</Link>
-                <Link href="/terms" className="hover:text-sky-700 dark:hover:text-lime-400">Terms and conditions</Link>
-              </nav>
+              <Link href="/" className="text-lg font-bold tracking-tight text-sky-700 dark:text-lime-400">Cellulite Bundle</Link>
+              <FooterLinks />
             </div>
             <div className="mt-8 flex flex-col gap-4 border-t border-slate-200 pt-5 text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400 sm:flex-row sm:items-center sm:justify-between">
-              <p>© {new Date().getFullYear()} xBundle. All rights reserved.</p>
+              <p>© {new Date().getFullYear()} Cellulite Bundle. All rights reserved.</p>
               <button
                 type="button"
                 onClick={cycleTheme}
-                className="inline-flex items-center gap-2 self-start rounded-xl border border-slate-300 bg-white px-4 py-2 font-semibold text-slate-700 hover:border-sky-400 sm:self-auto dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                className="inline-flex items-center gap-2 self-end rounded-xl border border-slate-300 bg-white px-4 py-2 font-semibold text-slate-700 hover:border-sky-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
                 aria-label={`Color theme: ${theme}. Activate to change theme.`}
               >
-                <span aria-hidden="true">{theme === "system" ? "◐" : theme === "dark" ? "☾" : "☀"}</span>
+                {theme === "system" ? <Monitor aria-hidden="true" size={16} /> : theme === "dark" ? <Moon aria-hidden="true" size={16} /> : <Sun aria-hidden="true" size={16} />}
                 Theme: {theme[0].toUpperCase() + theme.slice(1)}
               </button>
             </div>
