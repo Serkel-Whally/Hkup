@@ -44,7 +44,7 @@ export default function LoginPage() {
           </div>
           <p className="text-sm font-semibold uppercase tracking-[0.25em] text-sky-600">Welcome back</p>
           <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-900">Log in</h1>
-          <p className="mt-2 text-sm text-slate-600">Access your CelluLite Data account.</p>
+          <p className="mt-2 text-sm text-slate-600">Access your xBundle account.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5" noValidate>

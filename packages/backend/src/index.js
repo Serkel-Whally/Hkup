@@ -31,7 +31,7 @@ async function start() {
   app.use('/api/wallets', walletsRoutes);
 
   app.listen(PORT, () => {
-    console.log(`Whally backend listening on http://localhost:${PORT}`);
+    console.log(`xBundle backend listening on http://localhost:${PORT}`);
   });
 }
 

@@ -11,7 +11,7 @@ This document outlines the 6-phase development plan for the CelluLite Data platf
 
 ---
 
-## Phase 1 — Foundation ✅ (Currently In Progress)
+## Phase 1 — Foundation 🔄 (In Progress)
 
 **Focus**: Core infrastructure, authentication, and database setup
 
@@ -21,8 +21,8 @@ This document outlines the 6-phase development plan for the CelluLite Data platf
 - [x] Basic authentication (JWT, login/signup)
 - [x] Database schema (MongoDB with Mongoose)
 - [x] User models and profiles
-- [x] Admin authentication foundation
-- [x] Role-based permission structure
+- [ ] Admin authentication foundation
+- [ ] Role-based permission enforcement
 
 ### Deliverables
 - Working authentication system
@@ -32,7 +32,7 @@ This document outlines the 6-phase development plan for the CelluLite Data platf
 - Basic user profile schema
 
 ### Current Status
-✅ **Complete** — Authentication flow is wired and functional. Users can register, login, and receive JWT tokens.
+🔄 **In Progress** — Customer registration, login, and JWT-protected endpoints are implemented. Admin-only authorization and standardized environment configuration remain incomplete.
 
 ---
 
@@ -80,19 +80,18 @@ This document outlines the 6-phase development plan for the CelluLite Data platf
 - [x] Bundle database (Plan model exists)
 - [x] Network management (structure ready)
 - [ ] Order system (basic Order model, needs expansion)
-- [x] Payment system (webhook route stubbed)
+- [x] Payment system (Paystack initialization, verification, and signed webhook)
 - [ ] Wallet ledger (transaction history)
 - [x] Payment verification (Paystack webhook processing)
 - [ ] Provider integration (mock in place)
 - [ ] Order processing workflow (documented, not fully automated)
 
 ### Current Implementation
-- ✅ `/api/plans` — List and create plans
-- ✅ `/api/plans/orders` — Create orders
+- ✅ `/api/bundles` — List and create active bundles
+- ✅ `/api/orders` — Create orders and serve authenticated history/details
 - ✅ `/api/auth` — Registration, login, logout
 - ✅ `/api/payments/paystack/webhook` — Verifies Paystack signatures and settles matching order or wallet funding
 - 🔄 `/api/wallets` — Authenticated balance, funding initialization, and verified funding history; debit/refund entries remain
-- ✅ `/api/orders` — Creates orders and serves authenticated order history/details
 
 ### Order Processing Workflow (From plan.md section 50)
 
@@ -417,7 +416,7 @@ cd Hkup
 yarn install
 
 # Setup environment
-cp packages/backend/.env.payments.example packages/backend/.env
+# Configure PAYSTACK_SECRET_KEY in the root .env file for Docker Compose.
 
 # Run MongoDB (via Docker)
 docker-compose up -d

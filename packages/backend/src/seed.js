@@ -5,7 +5,7 @@ const bcrypt = require('bcryptjs');
 
 async function seed() {
   await connect();
-  console.log('Seeding CelluLite Data database...');
+  console.log('Seeding xBundle database...');
 
   const adminEmail = process.env.SEED_ADMIN_EMAIL || 'admin@cellulite.com';
   const adminPassword = process.env.SEED_ADMIN_PASSWORD || 'ChangeMeNow@99!';

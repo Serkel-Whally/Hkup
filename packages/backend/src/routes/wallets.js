@@ -97,6 +97,7 @@ router.post('/fund/verify', async (req, res) => {
       reference,
       userId: req.user._id,
     }).lean();
+    if (!settled) return res.status(404).json({ error: 'Wallet funding not found' });
     if (settled.status !== 'COMPLETED') {
       return res.status(400).json({ error: settled.failureReason || 'Wallet funding is not complete', transaction: settled });
     }

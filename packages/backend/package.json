@@ -1,7 +1,7 @@
 {
-  "name": "@whally/backend",
+  "name": "@xbundle/backend",
   "version": "1.0.2",
-  "description": "Whally backend (MVP) - MongoDB, Auth, Plans, Orders, Payments",
+  "description": "xBundle backend (MVP) - MongoDB, Auth, Plans, Orders, Payments",
   "main": "src/index.js",
   "scripts": {
     "dev": "nodemon src/index.js --watch src",

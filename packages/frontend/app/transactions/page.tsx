@@ -21,9 +21,9 @@ type Order = {
 };
 
 function getOrderLabel(order: Order) {
+  if (order.orderStatus === "REFUNDED" || order.paymentStatus === "REFUNDED") return "Refunded";
+  if (order.paymentStatus === "FAILED" || ["FAILED", "CANCELLED"].includes(order.orderStatus)) return "Failed";
   if (order.orderStatus === "COMPLETED") return "Successful";
-  if (["FAILED", "CANCELLED"].includes(order.orderStatus)) return "Failed";
-  if (order.orderStatus === "REFUNDED") return "Refunded";
   return "Processing";
 }
 

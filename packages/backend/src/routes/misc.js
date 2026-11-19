@@ -8,7 +8,7 @@ router.get('/health', (req, res) => res.json({ ok: true }));
 
 router.get('/api-info', (req, res) => {
   res.json({
-    name: 'Whally API',
+    name: 'xBundle API',
     status: 'online',
     version: '1.0.0',
     features: ['auth', 'bundles', 'orders', 'wallet'],

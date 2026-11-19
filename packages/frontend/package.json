@@ -1,7 +1,7 @@
 {
-  "name": "@whally/frontend",
+  "name": "@xbundle/frontend",
   "version": "1.0.0",
-  "description": "Whally frontend application",
+  "description": "xBundle frontend application",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

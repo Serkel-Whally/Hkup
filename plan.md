@@ -159,6 +159,8 @@ Phase 1 is done when the codebase can reliably support a real customer purchase 
 
 This is the baseline. All later phases—customer transactions, wallet, admin console, notifications, and hardening—should be built on this foundation, not around a different product model.
 
+Implementation progress for later phases is tracked in [DEVELOPMENT_PHASES.md](./DEVELOPMENT_PHASES.md). Mark checklist items complete only after their implementation has been validated.
+
 ---
 
 # CelluLite Data — Complete Product & Development Plan
