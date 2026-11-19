@@ -113,6 +113,63 @@ img, svg {
   }
 }
 
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: #020617;
+  color: #f8fafc;
+}
+
+html.dark [class*="bg-white"]:not([class*="dark:bg-"]),
+html.dark [class*="bg-slate-50"]:not([class*="dark:bg-"]),
+html.dark [class*="bg-gray-50"]:not([class*="dark:bg-"]) {
+  background-color: #0f172a;
+}
+
+html.dark [class*="bg-slate-100"]:not([class*="dark:bg-"]),
+html.dark [class*="bg-gray-100"]:not([class*="dark:bg-"]) {
+  background-color: #1e293b;
+}
+
+html.dark [class*="bg-slate-200"]:not([class*="dark:bg-"]),
+html.dark [class*="bg-gray-200"]:not([class*="dark:bg-"]) {
+  background-color: #334155;
+}
+
+html.dark [class*="text-slate-950"]:not([class*="dark:text-"]),
+html.dark [class*="text-slate-900"]:not([class*="dark:text-"]),
+html.dark [class*="text-slate-800"]:not([class*="dark:text-"]),
+html.dark [class*="text-gray-900"]:not([class*="dark:text-"]),
+html.dark [class*="text-gray-800"]:not([class*="dark:text-"]) {
+  color: #f8fafc;
+}
+
+html.dark [class*="text-slate-700"]:not([class*="dark:text-"]),
+html.dark [class*="text-slate-600"]:not([class*="dark:text-"]),
+html.dark [class*="text-gray-700"]:not([class*="dark:text-"]),
+html.dark [class*="text-gray-600"]:not([class*="dark:text-"]) {
+  color: #cbd5e1;
+}
+
+html.dark [class*="text-slate-500"]:not([class*="dark:text-"]),
+html.dark [class*="text-gray-500"]:not([class*="dark:text-"]) {
+  color: #94a3b8;
+}
+
+html.dark [class*="border-slate-100"]:not([class*="dark:border-"]),
+html.dark [class*="border-slate-200"]:not([class*="dark:border-"]),
+html.dark [class*="border-gray-100"]:not([class*="dark:border-"]),
+html.dark [class*="border-gray-200"]:not([class*="dark:border-"]) {
+  border-color: #334155;
+}
+
+html.dark [class*="border-slate-300"]:not([class*="dark:border-"]),
+html.dark [class*="border-gray-300"]:not([class*="dark:border-"]) {
+  border-color: #475569;
+}
+
 .loading-screen {
   position: fixed;
   inset: 0;

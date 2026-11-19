@@ -1,9 +1,6 @@
-"use client";
-
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { Monitor, Moon, Sun } from "lucide-react";
 import { FooterLinks } from "./components/footer-links";
+import { ThemeToggle } from "./components/theme-toggle";
 
 const networks = [
   { name: "MTN", logo: "/mtn.svg", color: "bg-yellow-100" },
@@ -12,49 +9,17 @@ const networks = [
 ];
 
 const tickerItems = ["MTN", "Telecel", "AirtelTigo", "No expiry", "Instant", "Mobile Money", "24/7"];
-type Theme = "light" | "dark" | "system";
 
 export default function LandingPage() {
-  const [theme, setTheme] = useState<Theme>("system");
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    const savedTheme = window.localStorage.getItem("xbundle-theme");
-    if (savedTheme === "light" || savedTheme === "dark" || savedTheme === "system") {
-      setTheme(savedTheme);
-    }
-  }, []);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const updateTheme = () => {
-      setIsDark(theme === "dark" || (theme === "system" && mediaQuery.matches));
-    };
-
-    updateTheme();
-    mediaQuery.addEventListener("change", updateTheme);
-    window.localStorage.setItem("xbundle-theme", theme);
-
-    return () => mediaQuery.removeEventListener("change", updateTheme);
-  }, [theme]);
-
-  const cycleTheme = () => {
-    setTheme((currentTheme) => {
-      if (currentTheme === "system") return "light";
-      if (currentTheme === "light") return "dark";
-      return "system";
-    });
-  };
-
   return (
-    <div className={isDark ? "dark" : ""}>
       <main className="min-h-screen bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-slate-50">
         <header className="border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
           <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8">
-            <Link href="/" className="text-xl font-bold tracking-tight text-sky-700 dark:text-lime-400">Cellulite Bundle</Link>
-            <nav className="flex items-center gap-3" aria-label="Account navigation">
+            <Link href="/" className="hidden text-xl font-bold tracking-tight text-sky-700 dark:text-lime-400 sm:inline-flex">Cellulite Bundle</Link>
+            <nav className="ml-auto flex items-center gap-2 sm:gap-3" aria-label="Account navigation">
+              <ThemeToggle />
               <Link href="/login" className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">Log in</Link>
-              <Link href="/signup" className="rounded-xl bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-sky-700">Create account</Link>
+              <Link href="/signup" className="hidden rounded-xl bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-sky-700 sm:inline-flex">Create account</Link>
             </nav>
           </div>
         </header>
@@ -123,19 +88,9 @@ export default function LandingPage() {
             </div>
             <div className="mt-8 flex flex-col gap-4 border-t border-slate-200 pt-5 text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400 sm:flex-row sm:items-center sm:justify-between">
               <p>© {new Date().getFullYear()} Cellulite Bundle. All rights reserved.</p>
-              <button
-                type="button"
-                onClick={cycleTheme}
-                className="inline-flex items-center gap-2 self-end rounded-xl border border-slate-300 bg-white px-4 py-2 font-semibold text-slate-700 hover:border-sky-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-                aria-label={`Color theme: ${theme}. Activate to change theme.`}
-              >
-                {theme === "system" ? <Monitor aria-hidden="true" size={16} /> : theme === "dark" ? <Moon aria-hidden="true" size={16} /> : <Sun aria-hidden="true" size={16} />}
-                Theme: {theme[0].toUpperCase() + theme.slice(1)}
-              </button>
             </div>
           </div>
         </footer>
       </main>
-    </div>
   );
 }
