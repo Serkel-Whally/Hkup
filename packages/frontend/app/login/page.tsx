@@ -114,7 +114,7 @@ export default function LoginPage() {
 
         <p className="mt-6 text-center text-sm text-slate-600">
           Don&apos;t have an account? {" "}
-          <Link href="/signup" className="font-semibold text-sky-600 hover:text-sky-700">
+          <Link href={"/signup" + (new URLSearchParams(window.location.search).get("next") ? "?next=" + encodeURIComponent(new URLSearchParams(window.location.search).get("next")!) : "")} className="font-semibold text-sky-600 hover:text-sky-700">
             Create account
           </Link>
         </p>
