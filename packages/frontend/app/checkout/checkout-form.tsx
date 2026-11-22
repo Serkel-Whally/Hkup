@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
@@ -23,7 +23,7 @@ const getNetworkMeta = (networkId: string | null) =>
 
 const isValidPhoneNumber = (value: string) => {
   const digits = value.replace(/\D/g, "");
-  return /^0?[2-9]\d{8}$/.test(digits) || /^\+?233[2-9]\d{8}$/.test(digits);
+  return /^(?:0[2-9]\d{8}|233[2-9]\d{8})$/.test(digits);
 };
 
 type CheckoutDetails = {
@@ -50,8 +50,8 @@ export function CheckoutPage({ modal = false, details, onClose }: CheckoutPagePr
   const [price, setPrice] = useState<string | null>(details?.price ?? null);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [touched, setTouched] = useState(false);
-  const [promoCode, setPromoCode] = useState("");
-  const [promoApplied, setPromoApplied] = useState(false);
+  const [priceVerified, setPriceVerified] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
   const [submitError, setSubmitError] = useState("");
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const close = useMemo(() => onClose ?? (() => router.back()), [onClose, router]);
@@ -84,9 +84,43 @@ export function CheckoutPage({ modal = false, details, onClose }: CheckoutPagePr
     };
   }, [modal, close]);
 
+  useEffect(() => {
+    if (!bundleId) {
+      setPriceVerified(false);
+      return;
+    }
+    let cancelled = false;
+    setPriceVerified(false);
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    fetch(apiUrl + "/api/bundles")
+      .then(async (response) => {
+        if (!response.ok) throw new Error("Unable to verify bundle price");
+        return response.json();
+      })
+      .then((bundles: Array<{ bundleId: string; network: string; size: string; validity: string; price: number; active?: boolean }>) => {
+        const bundle = bundles.find((item) => item.bundleId === bundleId && item.active !== false);
+        if (!bundle || !Number.isFinite(Number(bundle.price)) || Number(bundle.price) <= 0) throw new Error("This bundle is no longer available");
+        if (cancelled) return;
+        const networkIds: Record<string, string> = { MTN: "mtn", Telecel: "telecel", AirtelTigo: "airtel" };
+        setNetwork(networkIds[bundle.network] ?? network);
+        setSize(bundle.size);
+        setValidity(bundle.validity);
+        setPrice("GH₵ " + Number(bundle.price).toFixed(2));
+        setPriceVerified(true);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setPrice(null);
+          setPriceVerified(false);
+          setSubmitError("We couldn't verify this bundle's price. Please go back and select it again.");
+        }
+      });
+    return () => { cancelled = true; };
+  }, [bundleId]);
+
   const networkMeta = useMemo(() => getNetworkMeta(network), [network]);
-  const phoneError = touched && !isValidPhoneNumber(phoneNumber) ? "Enter a valid mobile number." : "";
-  const canSubmit = isValidPhoneNumber(phoneNumber);
+  const phoneError = touched && !isValidPhoneNumber(phoneNumber) ? "Enter a valid Ghana mobile number." : "";
+  const canSubmit = isValidPhoneNumber(phoneNumber) && priceVerified;
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -109,7 +143,7 @@ export function CheckoutPage({ modal = false, details, onClose }: CheckoutPagePr
   return (
     <>
       <div role={modal ? "dialog" : undefined} aria-modal={modal ? true : undefined} aria-label={modal ? "Complete your purchase" : undefined} onClick={modal ? close : undefined} className={modal ? "fixed inset-0 z-40 flex items-end bg-black/40 sm:items-center sm:justify-center" : "w-full"}>
-        <div onClick={modal ? (event) => event.stopPropagation() : undefined} className={modal ? "absolute inset-x-0 bottom-0 top-8 flex flex-col overflow-hidden rounded-t-[28px] bg-slate-50 text-slate-900 sm:relative sm:top-auto sm:rounded-[20px]" : "w-full"}>
+        <div ref={dialogRef} onClick={modal ? (event) => event.stopPropagation() : undefined} className={modal ? "absolute inset-x-0 bottom-0 top-8 flex flex-col overflow-hidden rounded-t-[28px] bg-slate-50 text-slate-900 sm:relative sm:top-auto sm:rounded-[20px]" : "w-full"}>
           <header className={modal ? "shrink-0 border-b border-slate-100 bg-white px-4 pt-2" : "sticky top-0 z-20 border-b border-slate-100 bg-white/95 backdrop-blur-sm"}>
             {modal ? <div className="mx-auto mb-1 h-1 w-10 rounded-full bg-slate-200" aria-hidden="true" /> : null}
             <div className="mx-auto flex h-14 max-w-md items-center justify-between sm:px-1">
@@ -147,6 +181,8 @@ export function CheckoutPage({ modal = false, details, onClose }: CheckoutPagePr
                     <Phone size={18} className="text-slate-500" />
                     <input
                       type="tel"
+                      inputMode="tel"
+                      autoComplete="tel"
                       value={phoneNumber}
                       onChange={(event) => setPhoneNumber(event.target.value)}
                       onBlur={() => setTouched(true)}
@@ -161,29 +197,10 @@ export function CheckoutPage({ modal = false, details, onClose }: CheckoutPagePr
               </section>
 
               <section>
-                <div className="mb-3"><h2 className="text-[17px] font-semibold tracking-[-0.02em] text-slate-900">Promo code</h2><p className="mt-1 text-[13px] text-slate-500">Have a discount code?</p></div>
-                <div className="flex gap-2">
-                  <input
-                    value={promoCode}
-                    onChange={(event) => {
-                      setPromoCode(event.target.value.toUpperCase());
-                      setPromoApplied(false);
-                    }}
-                    placeholder="Enter promo code"
-                    className="flex-1 rounded-[14px] border border-slate-200 bg-white px-3 py-3 text-[15px] text-slate-900 placeholder:text-slate-400 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (!promoCode.trim()) return;
-                      setPromoApplied(true);
-                    }}
-                    className="rounded-[14px] bg-slate-900 px-4 py-3 text-[13px] font-semibold text-white hover:bg-slate-800"
-                  >
-                    Apply
-                  </button>
+                <div className="rounded-[14px] border border-slate-200 bg-white px-3.5 py-3">
+                  <p className="text-[14px] font-medium text-slate-700">Promo codes are coming soon</p>
+                  <p className="mt-1 text-[12px] text-slate-500">Discounts will appear here when code validation is available.</p>
                 </div>
-                {promoApplied ? <p className="mt-2 text-sm font-semibold text-emerald-600" role="status">Promo code applied to this order.</p> : null}
               </section>
 
               <section>
@@ -201,14 +218,7 @@ export function CheckoutPage({ modal = false, details, onClose }: CheckoutPagePr
                     <div className="flex items-center justify-between gap-3 text-[15px]">
                       <span className="text-slate-600">Subtotal</span>
                       <span className="font-medium text-slate-900">{price ?? "GH₵ 0.00"}</span>
-                    </div>
-                    {promoApplied ? (
-                      <div className="flex items-center justify-between gap-3 text-[15px]">
-                        <span className="text-slate-600">Promo</span>
-                        <span className="font-medium text-emerald-600">-GH₵ 0.00</span>
-                      </div>
-                    ) : null}
-                    <div className="flex items-center justify-between gap-3 border-t border-slate-200 pt-2 text-[15px]">
+                    </div><div className="flex items-center justify-between gap-3 border-t border-slate-200 pt-2 text-[15px]">
                       <span className="font-semibold text-slate-900">Total</span>
                       <span className="font-bold text-slate-900">{price ?? "GH₵ 0.00"}</span>
                     </div>
@@ -216,6 +226,7 @@ export function CheckoutPage({ modal = false, details, onClose }: CheckoutPagePr
                 </div>
               </section>
 
+              {!priceVerified && !submitError ? <p className="text-xs text-slate-500" role="status">Verifying the current bundle price…</p> : null}
               {submitError ? <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">{submitError}</p> : null}
 
               <div className={modal ? "fixed inset-x-0 bottom-0 z-10 border-t border-slate-200 bg-white/95 px-4 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-3 backdrop-blur-md sm:static sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none" : "px-0"}>
@@ -237,7 +248,6 @@ export function CheckoutPage({ modal = false, details, onClose }: CheckoutPagePr
           validity={validity}
           price={price}
           recipient={phoneNumber}
-          promoCode={promoApplied ? promoCode : undefined}
           onClose={handleClosePaymentModal}
         />
       )}
