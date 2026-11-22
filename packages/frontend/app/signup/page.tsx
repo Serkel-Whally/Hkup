@@ -2,11 +2,17 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { register } from "@/app/lib/auth";
 
 export default function SignupPage() {
   const router = useRouter();
+  const [nextPath, setNextPath] = useState("");
+
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get("next");
+    if (requested && requested.startsWith("/") && !requested.startsWith("//")) setNextPath(requested);
+  }, []);
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -197,7 +203,7 @@ export default function SignupPage() {
 
         <p className="mt-6 text-center text-sm text-slate-600">
           Already have an account? {" "}
-          <Link href={"/login" + (new URLSearchParams(window.location.search).get("next") ? "?next=" + encodeURIComponent(new URLSearchParams(window.location.search).get("next")!) : "")} className="font-semibold text-sky-600 hover:text-sky-700">
+          <Link href={"/login" + (nextPath ? "?next=" + encodeURIComponent(nextPath) : "")} className="font-semibold text-sky-600 hover:text-sky-700">
             Log in
           </Link>
         </p>
