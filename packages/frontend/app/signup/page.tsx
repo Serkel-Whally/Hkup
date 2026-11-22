@@ -89,6 +89,7 @@ export default function SignupPage() {
               onChange={updateField("name")}
               className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm text-slate-900 outline-none transition focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100"
               placeholder="Your full name"
+              required
             />
           </div>
 
@@ -99,11 +100,13 @@ export default function SignupPage() {
             <input
               id="phone"
               type="tel"
+              inputMode="tel"
               autoComplete="tel"
               value={form.phone}
               onChange={updateField("phone")}
               className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm text-slate-900 outline-none transition focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100"
               placeholder="024XXXXXXX"
+              required
             />
           </div>
 
@@ -119,6 +122,7 @@ export default function SignupPage() {
               onChange={updateField("email")}
               className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm text-slate-900 outline-none transition focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100"
               placeholder="you@example.com"
+              required
             />
           </div>
 
@@ -130,7 +134,7 @@ export default function SignupPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword((value) => !value)}
-                className="text-xs font-medium text-sky-600 hover:text-sky-700"
+                className="rounded-md px-1 py-1 text-xs font-medium text-sky-600 hover:text-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
               >
                 {showPassword ? "Hide" : "Show"}
               </button>
@@ -143,6 +147,8 @@ export default function SignupPage() {
               onChange={updateField("password")}
               className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm text-slate-900 outline-none transition focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100"
               placeholder="Create a password"
+              minLength={6}
+              required
             />
           </div>
 
@@ -167,11 +173,13 @@ export default function SignupPage() {
               onChange={updateField("confirmPassword")}
               className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm text-slate-900 outline-none transition focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100"
               placeholder="Repeat your password"
+              minLength={6}
+              required
             />
           </div>
 
           {error ? (
-            <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            <div role="alert" aria-live="polite" className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
               {error}
             </div>
           ) : null}
