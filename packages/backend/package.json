@@ -8,7 +8,7 @@
     "start": "node src/index.js",
     "seed": "node src/seed.js",
     "build": "echo \"No build step for backend (pure JS)\"",
-    "test": "echo \"No tests configured\" && exit 0"
+    "test": "node --test"
   },
   "dependencies": {
     "express": "^4.18.2",
