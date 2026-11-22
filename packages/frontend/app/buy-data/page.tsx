@@ -130,17 +130,23 @@ export default function BuyDataPage() {
     }
   }, [bundleData]);
 
-  const currentBundles = bundleData[selectedNetwork]?.[selectedPlan] || [];
+  const networkBundles = bundleData[selectedNetwork] || {};
+  const currentBundles = networkBundles[selectedPlan] || [];
+  const allNetworkBundles = Object.values(networkBundles).flat();
   const normalizedSearch = searchQuery.trim().toLowerCase();
   const visibleBundles = normalizedSearch
-    ? currentBundles.filter((bundle) =>
+    ? allNetworkBundles.filter((bundle) =>
         [bundle.size, bundle.validity, bundle.price].some((value) => value.toLowerCase().includes(normalizedSearch))
       )
     : currentBundles;
 
   const handleBundleSelect = (bundleId: string) => {
-    const bundle = currentBundles.find((b) => b.id === bundleId);
+    const bundle = allNetworkBundles.find((item) => item.id === bundleId);
     if (bundle) {
+      const matchingCategory = Object.keys(networkBundles).find((category) =>
+        networkBundles[category].some((item) => item.id === bundleId)
+      );
+      if (matchingCategory) setSelectedPlan(matchingCategory);
       setSelectedBundle(bundleId);
       if (typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches) {
         setCheckoutDetails({
@@ -261,7 +267,7 @@ export default function BuyDataPage() {
               type="search"
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search bundles..."
+              placeholder="Search all bundles for this network..."
               className="min-w-0 flex-1 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
             />
             {searchQuery ? <button type="button" onClick={() => setSearchQuery("")} className="rounded-md px-2 py-1 text-xs font-semibold text-sky-700 hover:bg-sky-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500">Clear</button> : null}
