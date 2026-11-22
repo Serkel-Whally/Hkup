@@ -29,7 +29,7 @@ export default function WalletCard({
               </p>
 
               <p className="text-xs opacity-85">
-                Ready to spend
+                Verified wallet funding
               </p>
             </div>
 
