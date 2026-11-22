@@ -64,7 +64,7 @@ export default function BuyDataPage() {
           if (!networkId) continue;
           const category = /night/i.test(bundle.validity)
             ? "Night Bundles"
-            : /^(?:[3-9]\\d|\\d{3,})GB$/i.test(bundle.size)
+            : /^(?:[3-9]\d|\d{3,})GB$/i.test(bundle.size)
               ? "Mega Bundles"
               : "Data Bundles";
           grouped[networkId] ??= {};
