@@ -76,7 +76,7 @@ export default function SignupPage() {
           <p className="mt-2 text-sm text-slate-600">Start buying data in a few quick steps.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
             <label htmlFor="name" className="block text-sm font-medium text-slate-700">
               Full name
