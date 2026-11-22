@@ -51,7 +51,7 @@ export default function LoginPage() {
           <p className="mt-2 text-sm text-slate-600">Access your xBundle account.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
             <label htmlFor="email" className="block text-sm font-medium text-slate-700">
               Email address
