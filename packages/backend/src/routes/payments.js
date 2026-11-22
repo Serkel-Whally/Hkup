@@ -1,6 +1,5 @@
 // Payment routes: Paystack server verification and signed webhook settlement.
 const express = require('express');
-const crypto = require('crypto');
 const { requireAuth } = require('../middleware/auth');
 const { initializeTransaction, verifyTransaction } = require('../services/paystack');
 const Order = require('../models/Order');
