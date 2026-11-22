@@ -136,7 +136,7 @@ export default function TransactionDetailsPage() {
                 />
                 <ProgressItem
                   label="Data delivery"
-                  detail={isComplete ? formatDate(order.completedAt) : formatStatus(order.orderStatus)}
+                  detail={isComplete ? formatDate(order.completedAt) : isFailed ? formatStatus(order.orderStatus) : order.orderStatus === "PAID" ? "Payment confirmed · awaiting data delivery" : formatStatus(order.orderStatus)}
                   complete={isComplete}
                   failed={isFailed}
                 />
