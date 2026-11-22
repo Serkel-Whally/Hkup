@@ -77,19 +77,23 @@ const faqs = [
 export default function LandingPage() {
   return (
     <main id="main-content" className="min-h-screen overflow-hidden bg-white text-slate-950 dark:bg-slate-950 dark:text-slate-50">
-      <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/90">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 sm:px-6 lg:px-8">
-          <Link href="/" className="inline-flex min-w-0 items-center gap-2.5 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500" aria-label="CelluLite Bundle home">
-            <Image src="/cellulite_logo_icon.svg" alt="" width={38} height={38} priority className="h-9 w-9 object-contain" />
-            <span className="truncate text-base font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-lg">CelluLite <span className="text-sky-600 dark:text-cyan-400">Bundle</span></span>
+      <header className="sticky top-0 z-30 border-b border-slate-200/70 bg-white/85 shadow-[0_4px_24px_-20px_rgba(15,23,42,0.35)] backdrop-blur-2xl dark:border-slate-800/80 dark:bg-slate-950/85">
+        <div className="mx-auto flex min-h-[72px] max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+          <Link href="/" className="group inline-flex min-w-0 items-center gap-2.5 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500" aria-label="CelluLite Bundle home">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-sky-50 ring-1 ring-sky-100 transition group-hover:scale-[1.03] dark:bg-sky-950/70 dark:ring-sky-900/70">
+              <Image src="/cellulite_logo_icon.svg" alt="" width={34} height={34} priority className="h-8 w-8 object-contain" />
+            </span>
+            <span className="truncate text-[15px] font-extrabold tracking-[-0.035em] text-slate-950 dark:text-white sm:text-lg">CelluLite <span className="text-sky-600 dark:text-cyan-400">Bundle</span></span>
           </Link>
 
-          <nav className="flex items-center gap-1.5 sm:gap-3" aria-label="Main navigation">
-            <Link href="#how-it-works" className="hidden rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white sm:inline-flex">How it works</Link>
-            <Link href="#networks" className="hidden rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white sm:inline-flex">Networks</Link>
+          <nav className="flex shrink-0 items-center gap-1 sm:gap-2" aria-label="Main navigation">
+            <div className="mr-1 hidden items-center rounded-full border border-slate-200/80 bg-slate-50/80 p-1 dark:border-slate-800 dark:bg-slate-900/80 sm:flex">
+              <Link href="#how-it-works" className="rounded-full px-3.5 py-2 text-[13px] font-semibold text-slate-600 transition hover:bg-white hover:text-slate-950 hover:shadow-sm dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">How it works</Link>
+              <Link href="#networks" className="rounded-full px-3.5 py-2 text-[13px] font-semibold text-slate-600 transition hover:bg-white hover:text-slate-950 hover:shadow-sm dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">Networks</Link>
+            </div>
             <ThemeToggle />
-            <Link href="/login" className="rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">Log in</Link>
-            <Link href="/signup" className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl bg-sky-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm shadow-sky-600/20 transition hover:bg-sky-700 sm:px-4">Get started <ArrowUpRight size={15} aria-hidden="true" /></Link>
+            <Link href="/login" className="inline-flex min-h-10 items-center justify-center rounded-xl px-2.5 text-[13px] font-bold text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800 sm:px-3.5 sm:text-sm">Log in</Link>
+            <Link href="/signup" className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-sky-600 px-3 text-[13px] font-bold text-white shadow-md shadow-sky-600/20 transition hover:-translate-y-0.5 hover:bg-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950 sm:min-h-11 sm:px-4 sm:text-sm">Get started <ArrowUpRight size={15} aria-hidden="true" /></Link>
           </nav>
         </div>
       </header>
@@ -287,18 +291,29 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <footer className="border-t border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950">
-        <div className="mx-auto max-w-7xl px-4 py-9 sm:px-6 lg:px-8">
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-            <Link href="/" className="inline-flex items-center gap-2.5">
-              <Image src="/cellulite_logo_icon.svg" alt="" width={32} height={32} className="h-8 w-8 object-contain" />
-              <span className="font-extrabold tracking-tight text-slate-900 dark:text-white">CelluLite Bundle</span>
-            </Link>
-            <FooterLinks />
+      <footer className="border-t border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-[#080f1d]">
+        <div className="mx-auto max-w-7xl px-4 pb-6 pt-10 sm:px-6 sm:pb-8 sm:pt-14 lg:px-8">
+          <div className="grid gap-9 md:grid-cols-[1.2fr_1fr] md:gap-12">
+            <div className="max-w-sm">
+              <Link href="/" className="group inline-flex items-center gap-3 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500" aria-label="CelluLite Bundle home">
+                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700">
+                  <Image src="/cellulite_logo_icon.svg" alt="" width={36} height={36} className="h-9 w-9 object-contain" />
+                </span>
+                <span className="text-lg font-extrabold tracking-[-0.035em] text-slate-950 dark:text-white">CelluLite <span className="text-sky-600 dark:text-cyan-400">Bundle</span></span>
+              </Link>
+              <p className="mt-4 max-w-xs text-sm leading-6 text-slate-600 dark:text-slate-400">A simpler place to explore data bundles across Ghana's major mobile networks and keep your orders organised.</p>
+              <div className="mt-5 flex flex-wrap gap-2">
+                {networks.map((network) => <span key={network.name} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white/80 px-2.5 py-1.5 text-xs font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"><Image src={network.logo} alt="" width={16} height={16} className="h-4 w-4 object-contain" />{network.name}</span>)}
+              </div>
+            </div>
+            <div className="md:justify-self-end md:pt-2">
+              <p className="mb-4 text-xs font-extrabold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Helpful links</p>
+              <FooterLinks />
+            </div>
           </div>
-          <div className="mt-7 flex flex-col gap-2 border-t border-slate-200 pt-5 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-10 flex flex-col gap-3 border-t border-slate-200 pt-5 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400 sm:flex-row sm:items-center sm:justify-between">
             <p>© {new Date().getFullYear()} CelluLite Bundle. All rights reserved.</p>
-            <p>Simple data purchases for Ghana.</p>
+            <p className="font-medium">Made for simpler data purchases in Ghana.</p>
           </div>
         </div>
       </footer>
