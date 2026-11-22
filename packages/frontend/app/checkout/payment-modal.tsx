@@ -412,6 +412,7 @@ export function PaymentModal({
                   <button
                     type="button"
                     onClick={() => setPaymentMethod("card")}
+                    aria-pressed={paymentMethod === "card"}
                     className={`w-full rounded-[14px] border-2 p-4 text-left transition-all ${
                       paymentMethod === "card"
                         ? "border-blue-500 bg-blue-50"
@@ -445,6 +446,7 @@ export function PaymentModal({
                   <button
                     type="button"
                     onClick={() => setPaymentMethod("mobile")}
+                    aria-pressed={paymentMethod === "mobile"}
                     className={`w-full rounded-[14px] border-2 p-4 text-left transition-all ${
                       paymentMethod === "mobile"
                         ? "border-blue-500 bg-blue-50"
