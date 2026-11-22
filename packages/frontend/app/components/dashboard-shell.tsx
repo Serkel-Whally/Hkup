@@ -125,9 +125,9 @@ export function DashboardShell({ children, active = "/dashboard", hideNavigation
 
 					<div className="mt-6 mb-2 px-2 text-xs font-medium text-slate-400">BUY DATA</div>
 					<ul className="space-y-1 px-2">
-						<NetworkItem label="MTN" />
-						<NetworkItem label="Telecel" />
-						<NetworkItem label="AirtelTigo" />
+						<NetworkItem label="MTN" href="/buy-data?network=mtn" />
+						<NetworkItem label="Telecel" href="/buy-data?network=telecel" />
+						<NetworkItem label="AirtelTigo" href="/buy-data?network=airtel" />
 					</ul>
 
 					<div className="mt-6 mb-2 px-2 text-xs font-medium text-slate-400">ACCOUNT</div>
@@ -145,15 +145,10 @@ export function DashboardShell({ children, active = "/dashboard", hideNavigation
 						</div>
 					</div>
 
-					<div className="mt-4 bg-cyan-50 rounded-lg p-3 flex gap-3 items-start">
-						<div className="p-2 bg-white rounded-full">
-							<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 12c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2s10 4.477 10 10z" stroke="#06b6d4" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-						</div>
-						<div className="text-xs">
-							<div className="font-semibold">Join our WhatsApp</div>
-							<div className="text-slate-500">Get updates, offers and important notices</div>
-							<button className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded bg-white text-sky-600 text-sm shadow-sm">Join Now</button>
-						</div>
+					<div className="mt-4 rounded-xl border border-cyan-100 bg-cyan-50 p-3">
+						<div className="text-xs font-semibold text-slate-900">Need a hand?</div>
+						<p className="mt-1 text-xs leading-5 text-slate-600">Get help with a purchase or your account.</p>
+						<Link href="/support" className="mt-3 inline-flex min-h-9 items-center gap-2 rounded-lg bg-white px-3 text-xs font-semibold text-sky-700 shadow-sm transition hover:bg-sky-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500">Contact support <ArrowRight size={14} /></Link>
 					</div>
 				</div>
 			</aside>
@@ -182,7 +177,7 @@ export function DashboardShell({ children, active = "/dashboard", hideNavigation
 
 							<div ref={profileRef} className="hidden md:flex relative items-center gap-2 max-w-[220px]">
 								<div className="text-sm text-slate-800 font-medium truncate">{userName}</div>
-								<div className="text-xs text-slate-500">Premium</div>
+								
 								<button
 									type="button"
 									onClick={() => setProfileOpen((open) => !open)}
@@ -229,23 +224,33 @@ function NavItem({ label, icon, href, active }: any) {
 	);
 }
 
-function NetworkItem({ label }: any) {
+function NetworkItem({ label, href }: { label: string; href: string }) {
 	return (
 		<li>
-			<button className="flex items-center gap-3 w-full text-left px-3 py-2 rounded-md text-sm hover:bg-slate-50 text-slate-700">
-				<div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-xs font-semibold">{label[0]}</div>
-				<div>{label}</div>
-			</button>
+			<Link href={href} className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500">
+				<span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold">{label[0]}</span>
+				<span>{label}</span>
+			</Link>
 		</li>
 	);
 }
 
 function SearchBar() {
+	const router = useRouter();
+	const [query, setQuery] = useState("");
+
+	function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+		event.preventDefault();
+		const search = query.trim();
+		router.push(search ? `/buy-data?search=${encodeURIComponent(search)}` : "/buy-data");
+	}
+
 	return (
-		<div className="relative">
-			<input aria-label="Search anything" placeholder="Search anything..." className="w-full rounded-full border border-slate-100 px-4 py-3 pr-11 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-sky-200" />
-			<div className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400"><Search /></div>
-		</div>
+		<form onSubmit={handleSubmit} role="search" className="relative">
+			<label htmlFor="dashboard-search" className="sr-only">Search data bundles</label>
+			<input id="dashboard-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search data bundles..." className="w-full rounded-full border border-slate-100 bg-white px-4 py-3 pr-11 text-sm outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100" />
+			<button type="submit" aria-label="Search bundles" className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-slate-400 transition hover:bg-sky-50 hover:text-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"><Search size={18} /></button>
+		</form>
 	);
 }
 
