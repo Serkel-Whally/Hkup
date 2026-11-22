@@ -64,6 +64,35 @@ export function PaymentModal({
 
   const amount = getAmount();
 
+  useEffect(() => {
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const dialog = document.querySelector<HTMLElement>('[aria-label="Complete your payment"]');
+    const focusable = () => Array.from(
+      dialog?.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])') ?? []
+    );
+    window.requestAnimationFrame(() => {
+      (dialog?.querySelector<HTMLElement>("input") ?? focusable()[0])?.focus();
+    });
+    const handleKeys = (event: KeyboardEvent) => {
+      if (event.key === "Escape") { close(); return; }
+      if (event.key !== "Tab") return;
+      const items = focusable();
+      if (!items.length) return;
+      if (event.shiftKey && document.activeElement === items[0]) {
+        event.preventDefault();
+        items[items.length - 1].focus();
+      } else if (!event.shiftKey && document.activeElement === items[items.length - 1]) {
+        event.preventDefault();
+        items[0].focus();
+      }
+    };
+    document.addEventListener("keydown", handleKeys);
+    return () => {
+      document.removeEventListener("keydown", handleKeys);
+      previousFocus?.focus();
+    };
+  }, [close]);
+
   // Load Paystack script
   useEffect(() => {
     const script = document.createElement("script");
