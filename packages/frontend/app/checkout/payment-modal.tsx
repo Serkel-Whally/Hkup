@@ -150,15 +150,24 @@ export function PaymentModal({
   const handlePayment = async () => {
     try {
       setTouched(true);
+      if (!validateEmail(email)) {
+        toast.error("Please enter a valid email address");
+        return;
+      }
+      if (!bundleId || !recipient) {
+        toast.error("Order details are incomplete. Please return to checkout.");
+        return;
+      }
 
       setLoading(true);
       setSubmitError("");
-
-      // Create order in backend first
       const order = await createOrder();
       const trustedAmount = Number(order.amount);
-      if (!Number.isFinite(trustedAmount) || trustedAmount <= 0) throw new Error("The bundle price could not be confirmed. Please try again.");
+      if (!Number.isFinite(trustedAmount) || trustedAmount <= 0) {
+        throw new Error("The bundle price could not be confirmed. Please try again.");
+      }
       setConfirmedAmount(trustedAmount);
+
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       const initializeResponse = await fetch(`${apiUrl}/api/payments/paystack/initialize`, {
         method: "POST",
@@ -172,28 +181,13 @@ export function PaymentModal({
       }
       window.location.assign(authorizationUrl);
     } catch (error) {
-            const message = error instanceof Error ? error.message : "Payment could not be verified yet.";
-            setSubmitError(message);
-            toast.error(message);
-            setLoading(false);
-          }
-        },
-        onClose: function () {
-          setLoading(false);
-          toast("Payment window closed. Your order was not completed.");
-        },
-      });
-
-      handler.openIframe();
-    } catch (error) {
-      console.error("Payment error:", error);
-      const errorMessage = error instanceof Error ? error.message : "Payment failed. Please try again.";
-      setSubmitError(errorMessage);
-      toast.error(errorMessage);
+      console.error("Payment initialization error:", error);
+      const message = error instanceof Error ? error.message : "Payment could not be started. Please try again.";
+      setSubmitError(message);
+      toast.error(message);
       setLoading(false);
     }
   };
-
 
   return (
     <div
@@ -429,12 +423,7 @@ export function PaymentModal({
               {loading ? (
                 <>
                   <Loader size={18} className="animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  <Lock size={18} />
-                  {confirmedAmount !== null ? "Pay GH₵ " + confirmedAmount.toFixed(2) : "Continue to secure payment"}
+                  Redirecting to secure payment...
                 </>
               ) : (
                 <>
