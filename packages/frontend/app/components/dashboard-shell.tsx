@@ -275,7 +275,8 @@ export function DashboardHome() {
 	const [orders, setOrders] = useState<DashboardOrder[]>([]);
 	const [popularBundles, setPopularBundles] = useState<any[]>([]);
 	const [dashboardLoading, setDashboardLoading] = useState(true);
-	const [dashboardLoadError, setDashboardLoadError] = useState(false);
+	const [bundlesLoadError, setBundlesLoadError] = useState(false);
+	const [ordersLoadError, setOrdersLoadError] = useState(false);
 
 	useEffect(() => {
 		const hour = new Date().getHours();
@@ -291,7 +292,8 @@ export function DashboardHome() {
 				fetch(`${apiUrl}/api/wallets`, { headers: authHeaders() }).then(async (response) => { if (!response.ok) throw new Error("Wallet unavailable"); return response.json(); }),
 			]);
 			const [bundlesResult, ordersResult, walletResult] = results;
-			setDashboardLoadError(results.some((result) => result.status === "rejected"));
+			setBundlesLoadError(bundlesResult.status === "rejected");
+			setOrdersLoadError(ordersResult.status === "rejected");
 			if (bundlesResult.status === "fulfilled") {
 				const bundles = bundlesResult.value as any[];
 				setPopularBundles(bundles.filter((bundle) => bundle.isPopular).slice(0, 6).map((bundle) => ({ id: bundle.bundleId, network: bundle.network, size: bundle.size, price: "GH₵ " + Number(bundle.price).toFixed(2), validity: bundle.validity, popular: true })));
@@ -390,7 +392,7 @@ export function DashboardHome() {
 						{popularBundles.map((bundle) => (<BundleCard key={bundle.id} bundle={bundle} onSelect={handlePopularBundleSelect} />))}
 					</div>
 				) : (
-					<p className="rounded-2xl border border-dashed border-slate-200 bg-white p-4 text-sm text-slate-500">{dashboardLoadError ? "Popular bundles couldn’t be loaded. Please refresh to try again." : "No popular bundles are active right now."}</p>
+					<p className="rounded-2xl border border-dashed border-slate-200 bg-white p-4 text-sm text-slate-500">{bundlesLoadError ? "Popular bundles couldn’t be loaded. Please refresh to try again." : "No popular bundles are active right now."}</p>
 				)}
 			</section>
 
@@ -405,7 +407,7 @@ export function DashboardHome() {
 						<div className="space-y-3 py-2" role="status" aria-live="polite">{[0, 1, 2].map((item) => <div key={item} className="h-14 animate-pulse rounded-xl bg-slate-100" />)}<span className="sr-only">Loading recent transactions</span></div>
 					) : transactions.length > 0 ? <ul className="space-y-3" role="list">
 						{transactions.map((t) => (<TransactionItem key={t.id} transaction={t} href={`/transactions/${encodeURIComponent(t.id)}`} />))}
-					</ul> : <p className="py-6 text-sm text-slate-500">{dashboardLoadError ? "Recent transactions couldn’t be loaded. Please refresh to try again." : "No transactions yet."}</p>}
+					</ul> : <p className="py-6 text-sm text-slate-500">{ordersLoadError ? "Recent transactions couldn’t be loaded. Please refresh to try again." : "No transactions yet."}</p>}
 				</div>
 			</section>
 
