@@ -274,6 +274,8 @@ export function DashboardHome() {
 	const [walletBalance, setWalletBalance] = useState<string | null>(null);
 	const [orders, setOrders] = useState<DashboardOrder[]>([]);
 	const [popularBundles, setPopularBundles] = useState<any[]>([]);
+	const [dashboardLoading, setDashboardLoading] = useState(true);
+	const [dashboardLoadError, setDashboardLoadError] = useState(false);
 
 	useEffect(() => {
 		const hour = new Date().getHours();
@@ -283,46 +285,24 @@ export function DashboardHome() {
 
 		const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 		const loadData = async () => {
-			try {
-				const [bundlesResponse, ordersResponse, walletResponse] = await Promise.all([
-					fetch(`${apiUrl}/api/bundles`),
-					fetch(`${apiUrl}/api/orders`, { headers: authHeaders() }),
-					fetch(`${apiUrl}/api/wallets`, { headers: authHeaders() }),
-				]);
-				if (bundlesResponse.ok) {
-					const bundles = await bundlesResponse.json() as any[];
-					setPopularBundles(bundles.filter((bundle) => bundle.isPopular).slice(0, 6).map((bundle) => ({
-						id: bundle.bundleId,
-						network: bundle.network,
-						size: bundle.size,
-						price: `GH₵ ${Number(bundle.price).toFixed(2)}`,
-						validity: bundle.validity,
-						popular: true,
-					})));
-				}
-				if (ordersResponse.ok) {
-					const data = await ordersResponse.json();
-					setOrders((data.orders || []).map((order: any) => ({
-						id: order.orderId,
-						network: order.network,
-						bundleSize: order.bundleSize,
-						recipientPhone: order.recipientPhone,
-						amount: order.amount,
-						paymentStatus: order.paymentStatus,
-						deliveryStatus: order.orderStatus,
-						createdAt: order.createdAt,
-					})));
-				}
-				if (walletResponse.ok) {
-					const wallet = await walletResponse.json();
-					setWalletBalance(`GH₵ ${Number(wallet.balance).toFixed(2)}`);
-				} else {
-					setWalletBalance("Unavailable");
-				}
-			} catch {
-				setPopularBundles([]);
-				setWalletBalance("Unavailable");
-			}
+			const results = await Promise.allSettled([
+				fetch(`${apiUrl}/api/bundles`).then(async (response) => { if (!response.ok) throw new Error("Bundles unavailable"); return response.json(); }),
+				fetch(`${apiUrl}/api/orders`, { headers: authHeaders() }).then(async (response) => { if (!response.ok) throw new Error("Transactions unavailable"); return response.json(); }),
+				fetch(`${apiUrl}/api/wallets`, { headers: authHeaders() }).then(async (response) => { if (!response.ok) throw new Error("Wallet unavailable"); return response.json(); }),
+			]);
+			const [bundlesResult, ordersResult, walletResult] = results;
+			setDashboardLoadError(results.some((result) => result.status === "rejected"));
+			if (bundlesResult.status === "fulfilled") {
+				const bundles = bundlesResult.value as any[];
+				setPopularBundles(bundles.filter((bundle) => bundle.isPopular).slice(0, 6).map((bundle) => ({ id: bundle.bundleId, network: bundle.network, size: bundle.size, price: "GH₵ " + Number(bundle.price).toFixed(2), validity: bundle.validity, popular: true })));
+			} else { setPopularBundles([]); }
+			if (ordersResult.status === "fulfilled") {
+				const data = ordersResult.value;
+				setOrders((data.orders || []).map((order: any) => ({ id: order.orderId, network: order.network, bundleSize: order.bundleSize, recipientPhone: order.recipientPhone, amount: order.amount, paymentStatus: order.paymentStatus, deliveryStatus: order.orderStatus, createdAt: order.createdAt })));
+			} else { setOrders([]); }
+			if (walletResult.status === "fulfilled") { setWalletBalance("GH₵ " + Number(walletResult.value.balance).toFixed(2)); }
+			else { setWalletBalance("Unavailable"); }
+			setDashboardLoading(false);
 		};
 		loadData();
 	}, []);
@@ -403,14 +383,14 @@ export function DashboardHome() {
 					<h3 className="text-lg md:text-xl font-semibold text-slate-900">Popular Bundles</h3>
 					<Link href="/buy-data" className="text-sm font-medium text-sky-600 hover:text-sky-700">View all</Link>
 				</div>
-				{popularBundles.length > 0 ? (
+				{dashboardLoading ? (
+					<div className="flex gap-3 overflow-hidden" role="status" aria-live="polite">{[0, 1, 2].map((item) => <div key={item} className="h-36 min-w-[190px] animate-pulse rounded-2xl border border-slate-100 bg-white" />)}<span className="sr-only">Loading popular bundles</span></div>
+				) : popularBundles.length > 0 ? (
 					<div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-3 pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-4">
-						{popularBundles.map((bundle) => (
-							<BundleCard key={bundle.id} bundle={bundle} onSelect={handlePopularBundleSelect} />
-						))}
+						{popularBundles.map((bundle) => (<BundleCard key={bundle.id} bundle={bundle} onSelect={handlePopularBundleSelect} />))}
 					</div>
 				) : (
-					<p className="rounded-2xl border border-dashed border-slate-200 bg-white p-4 text-sm text-slate-500">No popular bundles are active right now.</p>
+					<p className="rounded-2xl border border-dashed border-slate-200 bg-white p-4 text-sm text-slate-500">{dashboardLoadError ? "Popular bundles couldn’t be loaded. Please refresh to try again." : "No popular bundles are active right now."}</p>
 				)}
 			</section>
 
@@ -421,11 +401,11 @@ export function DashboardHome() {
 						<h3 className="text-lg md:text-xl font-semibold text-slate-900">Recent Transactions</h3>
 						<Link href="/transactions" className="text-sm font-medium text-sky-600 hover:text-sky-700">View all</Link>
 					</div>
-					{transactions.length > 0 ? <ul className="space-y-3" role="list">
-						{transactions.map((t) => (
-							<TransactionItem key={t.id} transaction={t} href={`/transactions/${encodeURIComponent(t.id)}`} />
-						))}
-					</ul> : <p className="py-6 text-sm text-slate-500">No transactions yet.</p>}
+					{dashboardLoading ? (
+						<div className="space-y-3 py-2" role="status" aria-live="polite">{[0, 1, 2].map((item) => <div key={item} className="h-14 animate-pulse rounded-xl bg-slate-100" />)}<span className="sr-only">Loading recent transactions</span></div>
+					) : transactions.length > 0 ? <ul className="space-y-3" role="list">
+						{transactions.map((t) => (<TransactionItem key={t.id} transaction={t} href={`/transactions/${encodeURIComponent(t.id)}`} />))}
+					</ul> : <p className="py-6 text-sm text-slate-500">{dashboardLoadError ? "Recent transactions couldn’t be loaded. Please refresh to try again." : "No transactions yet."}</p>}
 				</div>
 			</section>
 
