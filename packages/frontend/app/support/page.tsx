@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ArrowLeft, ArrowRight, BadgeHelp, ChevronDown, CircleAlert, CreditCard, Headphones, LockKeyhole, PackageCheck, Search, ShieldCheck, Wallet } from "lucide-react";
+import { ArrowLeft, ArrowRight, BadgeHelp, ChevronDown, CircleAlert, CreditCard, Headphones, LockKeyhole, PackageCheck, Search, Wallet } from "lucide-react";
 import { ThemeToggle } from "../components/theme-toggle";
 
 const topics = [
