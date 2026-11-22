@@ -209,11 +209,11 @@ export default function LandingPage() {
           <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-4xl">Three steps. No guesswork.</h2>
           <p className="mt-4 text-sm leading-7 text-slate-600 dark:text-slate-300 sm:text-base">From choosing a bundle to checking its status, the important details stay easy to find.</p>
         </div>
-        <div className="mt-10 grid gap-4 md:grid-cols-3">
+        <div className="-mx-4 mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain px-4 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0 md:pb-0">
           {steps.map((step) => {
             const Icon = step.icon;
             return (
-              <article key={step.number} className="rounded-2xl border border-slate-200 bg-white p-6 transition hover:-translate-y-1 hover:border-sky-200 hover:shadow-lg hover:shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-sky-900">
+              <article key={step.number} className="w-[84%] min-w-[84%] snap-start rounded-2xl border border-slate-200 bg-white p-6 transition hover:border-sky-200 hover:shadow-lg hover:shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-sky-900 sm:w-[62%] sm:min-w-[62%] md:w-auto md:min-w-0">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-extrabold tracking-widest text-sky-600 dark:text-cyan-400">{step.number}</span>
                   <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-cyan-300"><Icon size={20} /></span>
@@ -235,11 +235,11 @@ export default function LandingPage() {
               <p className="mt-4 text-sm leading-7 text-slate-600 dark:text-slate-300 sm:text-base">A straightforward experience for buying data, making payments and keeping up with your account.</p>
               <Link href="/signup" className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-xl bg-sky-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-sky-700">Get started <ArrowRight size={16} /></Link>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain px-4 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:grid md:grid-cols-2 md:overflow-visible md:px-0 md:pb-0">
               {benefits.map((benefit, index) => {
                 const Icon = benefit.icon;
                 return (
-                  <article key={benefit.title} className={`rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-950 ${index === 0 ? "sm:col-span-2" : ""}`}>
+                  <article key={benefit.title} className={`w-[84%] min-w-[84%] snap-start rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-950 sm:w-[62%] sm:min-w-[62%] md:w-auto md:min-w-0 ${index === 0 ? "md:col-span-2" : ""}`}>
                     <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-cyan-300"><Icon size={19} /></span>
                     <h3 className="mt-4 font-bold text-slate-900 dark:text-white">{benefit.title}</h3>
                     <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{benefit.description}</p>
