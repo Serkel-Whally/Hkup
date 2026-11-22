@@ -1,7 +1,7 @@
 "use client"
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
 	House,
@@ -12,7 +12,6 @@ import {
 	Headset,
 	Settings,
 	LogOut,
-	Bell,
 	Search,
 	ArrowRight,
 	Menu,
@@ -26,7 +25,6 @@ import MobileBottomNavigation from "./mobile-bottom-navigation";
 import { CheckoutPage } from "@/app/checkout/checkout-form";
 import AnnouncementPopup from "./announcement-popup";
 import { toast } from "sonner";
-import { getStoredNotifications } from "@/app/lib/notifications";
 import { authHeaders, clearAuthSession, getAuthSession } from "@/app/lib/auth";
 
 export function DashboardShell({ children, active = "/dashboard", hideNavigation = false }: any) {
@@ -35,7 +33,6 @@ export function DashboardShell({ children, active = "/dashboard", hideNavigation
 	const [drawerOpen, setDrawerOpen] = useState(false);
 	const [profileOpen, setProfileOpen] = useState(false);
 	const [userName, setUserName] = useState("Customer");
-	const [announcementUnreadCount, setAnnouncementUnreadCount] = useState(0);
 	const profileRef = useRef<HTMLDivElement | null>(null);
 	
 	const getActive = () => {
@@ -44,9 +41,6 @@ export function DashboardShell({ children, active = "/dashboard", hideNavigation
 		if (pathname === "/transactions") return "/transactions";
 		if (pathname === "/wallet") return "/wallet";
 		if (pathname === "/profile") return "/profile";
-		if (pathname === "/notifications") return "/notifications";
-		if (pathname === "/settings") return "/settings";
-		if (pathname === "/security") return "/security";
 		if (pathname === "/support") return "/support";
 		return active;
 	};
@@ -55,37 +49,10 @@ export function DashboardShell({ children, active = "/dashboard", hideNavigation
 	const shouldHideHeader = hideNavigation || pathname.startsWith("/transactions/");
 	const shouldHideBottomNavigation = hideNavigation;
 
-	const redirectToLogin = useCallback((targetPath = pathname) => {
-		router.replace(`/login?next=${encodeURIComponent(targetPath)}`);
-	}, [pathname, router]);
-
 	useEffect(() => {
-		const updateUnreadCount = () => {
-			setAnnouncementUnreadCount(getStoredNotifications().filter((notification) => notification.unread).length);
-		};
-
-		updateUnreadCount();
-		let isMounted = true;
-
-		const onNotificationsUpdated = () => {
-			updateUnreadCount();
-		};
-
-		window.addEventListener("cellulite-notifications-updated", onNotificationsUpdated);
-
-		const loadUser = () => {
-			if (!isMounted) return;
-			const session = getAuthSession();
-			setUserName(session?.user.name || session?.user.email || "Customer");
-		};
-
-		loadUser();
-
-		return () => {
-			isMounted = false;
-			window.removeEventListener("cellulite-notifications-updated", onNotificationsUpdated);
-		};
-	}, [pathname, redirectToLogin]);
+		const session = getAuthSession();
+		setUserName(session?.user.name || session?.user.email || "Customer");
+	}, [pathname]);
 
 	async function logout() {
 		clearAuthSession();
