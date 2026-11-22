@@ -59,10 +59,7 @@ router.post('/paystack/verify', requireAuth, express.json(), async (req, res) =>
     }
 
     if (!success) {
-      await Order.updateOne(
-        { _id: order._id, paymentStatus: 'PENDING', orderStatus: 'AWAITING_PAYMENT' },
-        { $set: { paymentStatus: 'FAILED', orderStatus: 'FAILED', failureReason: 'Payment was not successful' } }
-      );
+      return res.status(409).json({ error: 'Paystack has not confirmed a successful payment yet' });
     } else {
       await Order.updateOne(
         { _id: order._id, paymentStatus: 'PENDING', orderStatus: 'AWAITING_PAYMENT' },
@@ -123,6 +120,7 @@ router.post('/paystack/webhook', express.raw({ type: 'application/json' }), asyn
     if (!order) return res.json({ received: true });
 
     const success = event === 'charge.success' && data.status === 'success';
+    if (!success) return res.json({ received: true });
     if (success && (
       Number(data.amount) !== Math.round(order.amount * 100) ||
       String(data.currency || '').toUpperCase() !== order.currency
@@ -133,9 +131,7 @@ router.post('/paystack/webhook', express.raw({ type: 'application/json' }), asyn
 
     // Conditional transition makes duplicate/out-of-order webhooks idempotent:
     // a late failed event cannot downgrade an already-paid order.
-    const update = success
-      ? { paymentStatus: 'PAID', orderStatus: 'PAID', paidAt: new Date(), providerPaymentId: data.id ? String(data.id) : reference, failureReason: null }
-      : { paymentStatus: 'FAILED', orderStatus: 'FAILED', failureReason: 'Payment was not successful' };
+    const update = { paymentStatus: 'PAID', orderStatus: 'PAID', paidAt: new Date(), providerPaymentId: data.id ? String(data.id) : reference, failureReason: null };
     await Order.updateOne(
       { _id: order._id, paymentStatus: 'PENDING', orderStatus: 'AWAITING_PAYMENT' },
       { $set: update }
