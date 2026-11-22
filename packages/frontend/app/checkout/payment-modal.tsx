@@ -54,6 +54,7 @@ export function PaymentModal({
   const [confirmedAmount, setConfirmedAmount] = useState<number | null>(null);
 
   const networkMeta = useMemo(() => getNetworkMeta(network), [network]);
+  const close = useMemo(() => onClose ?? (() => router.back()), [onClose, router]);
 
   // Extract amount from price string (e.g., "GH₵ 50.00" -> 50)
   const getAmount = (): number => {
@@ -278,7 +279,6 @@ export function PaymentModal({
     }
   };
 
-  const close = useMemo(() => onClose ?? (() => router.back()), [onClose, router]);
 
   return (
     <div
