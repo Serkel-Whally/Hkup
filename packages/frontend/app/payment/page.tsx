@@ -13,7 +13,6 @@ function PaymentPageContent() {
   const validity = searchParams.get("validity");
   const price = searchParams.get("price");
   const recipient = searchParams.get("recipient");
-  const promoCode = searchParams.get("promoCode");
 
   return (
     <PaymentModal
@@ -23,7 +22,6 @@ function PaymentPageContent() {
       validity={validity}
       price={price}
       recipient={recipient || ""}
-      promoCode={promoCode || undefined}
       onClose={() => {
         if (typeof window !== "undefined" && window.history.length > 1) {
           window.history.back();
