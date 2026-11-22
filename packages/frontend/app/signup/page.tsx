@@ -56,7 +56,9 @@ export default function SignupPage() {
         phone,
         password,
       });
-      router.push("/dashboard");
+      const requestedNext = new URLSearchParams(window.location.search).get("next");
+      const safeNext = requestedNext && requestedNext.startsWith("/") && !requestedNext.startsWith("//") ? requestedNext : "/dashboard";
+      router.replace(safeNext);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to create your account.");
     } finally {
@@ -195,7 +197,7 @@ export default function SignupPage() {
 
         <p className="mt-6 text-center text-sm text-slate-600">
           Already have an account? {" "}
-          <Link href="/login" className="font-semibold text-sky-600 hover:text-sky-700">
+          <Link href={"/login" + (new URLSearchParams(window.location.search).get("next") ? "?next=" + encodeURIComponent(new URLSearchParams(window.location.search).get("next")!) : "")} className="font-semibold text-sky-600 hover:text-sky-700">
             Log in
           </Link>
         </p>
