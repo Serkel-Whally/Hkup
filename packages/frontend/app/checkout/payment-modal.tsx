@@ -172,7 +172,7 @@ export function PaymentModal({
       const initializeResponse = await fetch(`${apiUrl}/api/payments/paystack/initialize`, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...authHeaders() },
-        body: JSON.stringify({ orderId: order.orderId }),
+        body: JSON.stringify({ orderId: order.orderId, email }),
       });
       const initialized = await initializeResponse.json();
       const authorizationUrl = initialized?.data?.authorization_url;
