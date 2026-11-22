@@ -32,7 +32,6 @@ type PaymentModalProps = {
   validity: string | null;
   price: string | null;
   recipient: string;
-  promoCode?: string;
   onClose?: () => void;
 };
 
@@ -43,7 +42,6 @@ export function PaymentModal({
   validity,
   price,
   recipient,
-  promoCode,
   onClose,
 }: PaymentModalProps) {
   const router = useRouter();
@@ -53,6 +51,7 @@ export function PaymentModal({
   const [paymentMethod, setPaymentMethod] = useState<"card" | "mobile">("card");
   const [touched, setTouched] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [confirmedAmount, setConfirmedAmount] = useState<number | null>(null);
 
   const networkMeta = useMemo(() => getNetworkMeta(network), [network]);
 
@@ -113,7 +112,6 @@ export function PaymentModal({
         paymentMethod: paymentMethod === "mobile" ? "Mobile Money" : "Card",
         paymentProvider: "Paystack",
         email: email,
-        promoCode: promoCode || null,
       };
 
       const headers: Record<string, string> = {
@@ -134,6 +132,9 @@ export function PaymentModal({
       }
 
       const createdOrder = await response.json();
+      if (!createdOrder?.order?.orderId || !Number.isFinite(Number(createdOrder.order.amount))) {
+        throw new Error("The server returned an invalid order. Please try again.");
+      }
       return createdOrder.order;
     } catch (error) {
       console.error("Error creating order:", error);
@@ -166,18 +167,12 @@ export function PaymentModal({
 
       // Create order in backend first
       const order = await createOrder();
-
-      console.log("Initiating Paystack payment", {
-        amount,
-        email,
-        paymentMethod,
-      });
-
-      // Generate a unique reference using the order ID
-      const reference = order?.orderId || `HKUP-${network}-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
-
-      // Convert to pesewas (multiply by 100)
-      const amountInPesewas = Math.round(amount * 100);
+      const trustedAmount = Number(order.amount);
+      if (!Number.isFinite(trustedAmount) || trustedAmount <= 0) throw new Error("The bundle price could not be confirmed. Please try again.");
+      setConfirmedAmount(trustedAmount);
+      console.log("Initiating Paystack payment", { amount: trustedAmount, email, paymentMethod });
+      const reference = order.orderId;
+      const amountInPesewas = Math.round(trustedAmount * 100);
 
       // Initialize Paystack payment
       const handler = (window as any).PaystackPop.setup({
@@ -196,7 +191,6 @@ export function PaymentModal({
           bundle_id: bundleId,
           size: size,
           recipient: recipient,
-          promo_code: promoCode || null,
           order_id: order?._id,
           custom_fields: [
             {
@@ -340,7 +334,7 @@ export function PaymentModal({
                   </div>
                   <div className="flex items-center justify-between rounded-[12px] bg-white p-3 border border-slate-100">
                     <span className="text-[13px] text-slate-600">Total Amount</span>
-                    <span className="text-[18px] font-bold text-slate-900">{price}</span>
+                    <span className="text-[18px] font-bold text-slate-900">{confirmedAmount !== null ? "GH₵ " + confirmedAmount.toFixed(2) : price}</span>
                   </div>
                 </div>
               </section>
@@ -353,6 +347,8 @@ export function PaymentModal({
                 <input
                   type="email"
                   id="email"
+                  inputMode="email"
+                  autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   onBlur={() => setTouched(true)}
@@ -497,7 +493,7 @@ export function PaymentModal({
               ) : (
                 <>
                   <Lock size={18} />
-                  Pay {price}
+                  {confirmedAmount !== null ? "Pay GH₵ " + confirmedAmount.toFixed(2) : "Continue to secure payment"}
                 </>
               )}
             </button>
