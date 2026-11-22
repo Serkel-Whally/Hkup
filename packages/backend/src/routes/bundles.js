@@ -1,5 +1,6 @@
 const express = require('express');
 const Bundle = require('../models/Bundle');
+const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -20,8 +21,11 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', requireAuth, async (req, res) => {
   try {
+    if (!Array.isArray(req.user.roles) || !req.user.roles.includes('Admin')) {
+      return res.status(403).json({ error: 'Administrator access required' });
+    }
     const { network, size, validity, price, providerCost = 0, isPopular = false } = req.body || {};
 
     if (!network || !size || !validity || price === undefined || price === null) {
