@@ -11,8 +11,12 @@ const router = express.Router();
 
 router.post('/paystack/initialize', requireAuth, express.json(), async (req, res) => {
   try {
-    const { orderId } = req.body || {};
+    const { orderId, email } = req.body || {};
     if (!orderId) return res.status(400).json({ error: 'orderId required' });
+    const payerEmail = String(email || req.user.email || '').trim().toLowerCase();
+    if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(payerEmail)) {
+      return res.status(400).json({ error: 'A valid payment email is required' });
+    }
 
     const order = await Order.findOne({ orderId, userId: req.user._id });
     if (!order) return res.status(404).json({ error: 'Order not found' });
@@ -27,7 +31,7 @@ router.post('/paystack/initialize', requireAuth, express.json(), async (req, res
     const callbackUrl = new URL('/payment/callback', frontendUrl);
     callbackUrl.searchParams.set('reference', order.orderId);
     const data = await initializeTransaction({
-      email: req.user.email,
+      email: payerEmail,
       amount: order.amount,
       reference: order.orderId,
       callback_url: callbackUrl.toString(),
