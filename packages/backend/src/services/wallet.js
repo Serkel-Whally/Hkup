@@ -2,32 +2,31 @@ const WalletTransaction = require('../models/WalletTransaction');
 
 async function settleWalletFunding(reference, payment) {
   const funding = await WalletTransaction.findOne({ reference });
-  if (!funding || funding.status !== 'PENDING') {
+  if (!funding || funding.status !== 'PENDING') return funding;
+
+  // Failed/incomplete attempts and mismatched amounts stay pending for a
+  // fresh server-side verification or reconciliation. Never credit them.
+  if (payment.status !== 'success' || String(payment.reference || '') !== reference) {
     return funding;
   }
 
-  const succeeded = payment.status === 'success';
   const amountMatches = Number(payment.amount) === Math.round(funding.amount * 100);
   const currencyMatches = String(payment.currency || '').toUpperCase() === funding.currency;
-  const isComplete = succeeded && amountMatches && currencyMatches;
+  if (!amountMatches || !currencyMatches) {
+    console.error('Paystack wallet funding amount/currency mismatch:', reference);
+    return funding;
+  }
 
-  const update = isComplete
-    ? {
+  const settled = await WalletTransaction.findOneAndUpdate(
+    { reference, status: 'PENDING' },
+    {
+      $set: {
         status: 'COMPLETED',
         providerPaymentId: payment.id ? String(payment.id) : reference,
         completedAt: new Date(),
         failureReason: null,
-      }
-    : {
-        status: 'FAILED',
-        failureReason: succeeded
-          ? 'Payment amount or currency mismatch'
-          : 'Payment was not successful',
-      };
-
-  const settled = await WalletTransaction.findOneAndUpdate(
-    { reference, status: 'PENDING' },
-    { $set: update },
+      },
+    },
     { new: true }
   );
 
