@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ThemeToggle } from "./theme-toggle";
 
 export function InfoPage({
   title,
@@ -10,20 +9,6 @@ export function InfoPage({
 }) {
   return (
     <main className="min-h-screen bg-slate-50 text-slate-950">
-      <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-3.5 sm:px-8">
-          <Link href="/" className="inline-flex items-center gap-2 text-lg font-bold tracking-tight text-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-600 text-sm font-extrabold text-white">C</span>
-            <span>CelluLite Bundle</span>
-          </Link>
-          <nav className="flex items-center gap-2 sm:gap-3" aria-label="Page navigation">
-            <Link href="/buy-data" className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 sm:inline-flex">Browse bundles</Link>
-            <ThemeToggle />
-            <Link href="/login" className="rounded-lg bg-sky-600 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500">Log in</Link>
-          </nav>
-        </div>
-      </header>
-
       <article className="mx-auto max-w-3xl px-5 py-8 sm:px-8 sm:py-12">
         <Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition hover:text-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500">
           <span aria-hidden="true">←</span> Back to home
