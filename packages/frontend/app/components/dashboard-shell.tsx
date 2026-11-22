@@ -140,7 +140,7 @@ export function DashboardShell({ children, active = "/dashboard", hideNavigation
 				<div className="px-4 py-4">
 					<div className="border-t border-slate-100 pt-4 flex items-center justify-between">
 						<div className="flex items-center gap-3">
-							<Link href="/settings" className={`p-2 rounded-md hover:bg-slate-50 ${currentActive === "/settings" ? "bg-sky-50 text-sky-600" : "text-slate-700"}`} aria-label="Settings"><Settings size={18} /></Link>
+							<Link href="/profile" className={`p-2 rounded-md hover:bg-slate-50 ${currentActive === "/profile" ? "bg-sky-50 text-sky-600" : "text-slate-700"}`} aria-label="Profile and account"><Settings size={18} /></Link>
 							<button type="button" onClick={logout} className="p-2 rounded-md hover:bg-slate-50" aria-label="Logout"><LogOut size={18} /></button>
 						</div>
 					</div>
@@ -168,12 +168,7 @@ export function DashboardShell({ children, active = "/dashboard", hideNavigation
 						</div>
 
 						<div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
-							<Link href="/notifications" className="relative p-2 rounded-md hover:bg-slate-50" aria-label="Notifications">
-								<Bell size={22} />
-								{announcementUnreadCount > 0 ? (
-									<span role="status" aria-label={`${announcementUnreadCount} unread announcements`} className="absolute -top-0.5 -right-0.5 bg-sky-600 text-white text-[9px] font-bold min-w-4 h-4 rounded-full flex items-center justify-center px-0.5">{announcementUnreadCount > 9 ? "9+" : announcementUnreadCount}</span>
-								) : null}
-							</Link>
+
 
 							<div ref={profileRef} className="hidden md:flex relative items-center gap-2 max-w-[220px]">
 								<div className="text-sm text-slate-800 font-medium truncate">{userName}</div>
