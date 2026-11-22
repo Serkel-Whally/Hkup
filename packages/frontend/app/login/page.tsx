@@ -27,7 +27,11 @@ export default function LoginPage() {
 
     try {
       await login({ email: trimmedEmail, password });
-      router.push("/dashboard");
+      const requestedNext = new URLSearchParams(window.location.search).get("next");
+      const safeNext = requestedNext && requestedNext.startsWith("/") && !requestedNext.startsWith("//")
+        ? requestedNext
+        : "/dashboard";
+      router.replace(safeNext);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to log in.");
     } finally {
