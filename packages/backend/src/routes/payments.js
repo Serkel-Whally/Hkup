@@ -14,7 +14,7 @@ router.post('/paystack/initialize', requireAuth, express.json(), async (req, res
     const { orderId, email } = req.body || {};
     if (!orderId) return res.status(400).json({ error: 'orderId required' });
     const payerEmail = String(email || req.user.email || '').trim().toLowerCase();
-    if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(payerEmail)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payerEmail)) {
       return res.status(400).json({ error: 'A valid payment email is required' });
     }
 
