@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Check } from "lucide-react";
+import { Check, Search } from "lucide-react";
 import Image from "next/image";
 import { DashboardShell } from "@/app/components/dashboard-shell";
 import { CheckoutPage } from "@/app/checkout/checkout-form";
@@ -30,6 +30,7 @@ export default function BuyDataPage() {
   const [selectedNetwork, setSelectedNetwork] = useState<string>("mtn");
   const [selectedPlan, setSelectedPlan] = useState<string>("Data Bundles");
   const [selectedBundle, setSelectedBundle] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [bundleData, setBundleData] = useState<BundleData>({});
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [catalogError, setCatalogError] = useState("");
@@ -94,6 +95,7 @@ export default function BuyDataPage() {
     const params = new URLSearchParams(window.location.search);
     const networkParam = params.get("network");
     const bundleParam = params.get("bundle");
+    setSearchQuery(params.get("search") || "");
 
     if (networkParam && NETWORKS.some((n) => n.id === networkParam)) {
       setSelectedNetwork(networkParam);
@@ -129,6 +131,12 @@ export default function BuyDataPage() {
   }, [bundleData]);
 
   const currentBundles = bundleData[selectedNetwork]?.[selectedPlan] || [];
+  const normalizedSearch = searchQuery.trim().toLowerCase();
+  const visibleBundles = normalizedSearch
+    ? currentBundles.filter((bundle) =>
+        [bundle.size, bundle.validity, bundle.price].some((value) => value.toLowerCase().includes(normalizedSearch))
+      )
+    : currentBundles;
 
   const handleBundleSelect = (bundleId: string) => {
     const bundle = currentBundles.find((b) => b.id === bundleId);
@@ -245,6 +253,20 @@ export default function BuyDataPage() {
             ))}
           </div>
 
+          <div className="mb-4 flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 shadow-sm transition focus-within:border-sky-300 focus-within:ring-2 focus-within:ring-sky-100 sm:max-w-sm">
+            <Search size={18} className="shrink-0 text-slate-400" aria-hidden="true" />
+            <label htmlFor="bundle-search" className="sr-only">Search bundles by size, validity or price</label>
+            <input
+              id="bundle-search"
+              type="search"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Search bundles..."
+              className="min-w-0 flex-1 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
+            />
+            {searchQuery ? <button type="button" onClick={() => setSearchQuery("")} className="rounded-md px-2 py-1 text-xs font-semibold text-sky-700 hover:bg-sky-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500">Clear</button> : null}
+          </div>
+
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-6">
             {catalogLoading ? (
               <div className="col-span-full grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6" role="status" aria-live="polite">
@@ -272,8 +294,8 @@ export default function BuyDataPage() {
                   Try again
                 </button>
               </div>
-            ) : currentBundles.length > 0 ? (
-              currentBundles.map((bundle) => (
+            ) : visibleBundles.length > 0 ? (
+              visibleBundles.map((bundle) => (
                 <button
                   key={bundle.id}
                   type="button"
@@ -329,10 +351,11 @@ export default function BuyDataPage() {
               ))
             ) : (
               <div className="col-span-full rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-5 py-10 text-center">
-                <p className="font-semibold text-slate-800">No bundles available</p>
+                <p className="font-semibold text-slate-800">{normalizedSearch ? "No matching bundles" : "No bundles available"}</p>
                 <p className="mt-1 text-sm text-slate-500">
-                  There are currently no {selectedPlan.toLowerCase()} for {NETWORKS.find((network) => network.id === selectedNetwork)?.name}.
-                  Try another category or network.
+                  {normalizedSearch
+                    ? "Try a different size, validity period or price."
+                    : `There are currently no ${selectedPlan.toLowerCase()} for ${NETWORKS.find((network) => network.id === selectedNetwork)?.name}. Try another category or network.`}
                 </p>
               </div>
             )}
