@@ -15,6 +15,7 @@ function StatusBadge({ status }: { status: string }) {
     Successful: { color: "bg-emerald-50 text-emerald-700", icon: <CheckCircle size={13} /> },
     Processing: { color: "bg-sky-50 text-sky-700", icon: <Clock3 size={13} /> },
     Failed: { color: "bg-rose-50 text-rose-700", icon: <XCircle size={13} /> },
+    Refunded: { color: "bg-violet-50 text-violet-700", icon: <CheckCircle size={13} /> },
   };
 
   const config = map[status] || { color: "bg-slate-100 text-slate-700", icon: <Clock3 size={13} /> };
@@ -52,6 +53,7 @@ export default function TransactionItem({ transaction, href }: { transaction: an
           <div className="min-w-0">
             <p className="text-[15px] font-semibold leading-5 text-slate-900">{transaction.bundle}</p>
             <p className="mt-1 text-[13px] text-slate-500">{transaction.network} • {validity}</p>
+            {transaction.recipient ? <p className="mt-1 text-[12px] text-slate-500">To {transaction.recipient}</p> : null}
             <p className="mt-1 text-[12px] text-slate-400">{transaction.datetime}</p>
           </div>
 
