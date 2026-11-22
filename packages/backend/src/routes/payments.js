@@ -6,12 +6,13 @@ const { initializeTransaction, verifyTransaction } = require('../services/paysta
 const Order = require('../models/Order');
 const WalletTransaction = require('../models/WalletTransaction');
 const { settleWalletFunding } = require('../services/wallet');
+const { paymentMatches, isValidPaystackSignature } = require('../services/payment-safety');
 
 const router = express.Router();
 
 router.post('/paystack/initialize', requireAuth, express.json(), async (req, res) => {
   try {
-    const { orderId, email } = req.body || {};
+    const { orderId } = req.body || {};
     if (!orderId) return res.status(400).json({ error: 'orderId required' });
 
     const order = await Order.findOne({ orderId, userId: req.user._id });
@@ -20,11 +21,17 @@ router.post('/paystack/initialize', requireAuth, express.json(), async (req, res
       return res.status(409).json({ error: 'This order is not awaiting payment' });
     }
 
+    const frontendUrl = process.env.FRONTEND_URL;
+    if (!frontendUrl) {
+      return res.status(503).json({ error: 'Payment callback URL is not configured' });
+    }
+    const callbackUrl = new URL('/payment/callback', frontendUrl);
+    callbackUrl.searchParams.set('reference', order.orderId);
     const data = await initializeTransaction({
-      email: email || req.user.email,
+      email: req.user.email,
       amount: order.amount,
       reference: order.orderId,
-      callback_url: req.body?.callback_url,
+      callback_url: callbackUrl.toString(),
     });
     return res.json({ ok: true, data });
   } catch (err) {
@@ -49,10 +56,7 @@ router.post('/paystack/verify', requireAuth, express.json(), async (req, res) =>
     }
 
     const success = verification.status === 'success';
-    if (success && (
-      Number(verification.amount) !== Math.round(order.amount * 100) ||
-      String(verification.currency || '').toUpperCase() !== order.currency
-    )) {
+    if (success && !paymentMatches(verification, order.amount, order.currency, order.orderId)) {
       // Do not turn an order into FAILED on a mismatch; leave it pending for
       // reconciliation rather than risking a false-negative after a real charge.
       return res.status(400).json({ error: 'Payment amount or currency mismatch' });
@@ -95,10 +99,7 @@ router.post('/paystack/webhook', express.raw({ type: 'application/json' }), asyn
       return res.status(400).end();
     }
 
-    const expected = crypto.createHmac('sha512', secret).update(rawBody).digest();
-    let received;
-    try { received = Buffer.from(signature, 'hex'); } catch (_) { return res.status(400).end(); }
-    if (received.length !== expected.length || !crypto.timingSafeEqual(expected, received)) {
+    if (!isValidPaystackSignature(rawBody, signature, secret)) {
       return res.status(400).end();
     }
 
@@ -121,10 +122,7 @@ router.post('/paystack/webhook', express.raw({ type: 'application/json' }), asyn
 
     const success = event === 'charge.success' && data.status === 'success';
     if (!success) return res.json({ received: true });
-    if (success && (
-      Number(data.amount) !== Math.round(order.amount * 100) ||
-      String(data.currency || '').toUpperCase() !== order.currency
-    )) {
+    if (success && !paymentMatches(data, order.amount, order.currency, order.orderId)) {
       console.error('Paystack webhook amount/currency mismatch for order', reference);
       return res.status(400).json({ error: 'Payment amount or currency mismatch' });
     }
