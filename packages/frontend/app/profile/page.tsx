@@ -2,163 +2,92 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { ArrowRight, Bell, ChevronRight, CircleHelp, LockKeyhole, Mail, Phone, UserRound, WalletCards } from "lucide-react";
 import { DashboardShell } from "@/app/components/dashboard-shell";
-import { Bell, CheckCircle2, ChevronRight, Lock, Mail, Phone, ShieldCheck, UserRound } from "lucide-react";
 import { getAuthSession } from "@/app/lib/auth";
 
+type ProfileUser = { name: string; email: string; phone: string };
+
 export default function ProfilePage() {
-  const [user, setUser] = useState({ name: "Customer", email: "", phone: "" });
+  const [user, setUser] = useState<ProfileUser>({ name: "Customer", email: "", phone: "" });
 
   useEffect(() => {
     const session = getAuthSession();
     if (session?.user) {
       setUser({
         name: session.user.name || "Customer",
-        email: session.user.email,
+        email: session.user.email || "",
         phone: session.user.phone || "",
       });
     }
   }, []);
 
+  const initials = user.name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "C";
+
   return (
     <DashboardShell active="/profile">
-      <main className="mx-auto max-w-6xl space-y-6 pb-8">
-        <section className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm">
-          <div className="flex flex-col gap-6 border-b border-slate-200 bg-gradient-to-r from-sky-50 via-white to-emerald-50 p-5 md:flex-row md:items-center md:justify-between md:p-7">
-            <div className="flex items-center gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-sky-600 text-xl font-bold text-white shadow-sm">
-                {user.name.charAt(0).toUpperCase()}
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-2xl font-bold tracking-tight text-slate-900">{user.name}</h1>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-emerald-700">
-                    <CheckCircle2 size={12} /> Active
-                  </span>
-                </div>
-                <p className="mt-1 text-sm text-slate-600">Customer account</p>
-              </div>
-            </div>
+      <main className="mx-auto max-w-5xl space-y-6 pb-8">
+        <header>
+          <p className="text-sm font-semibold text-sky-600">Your account</p>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Profile</h1>
+          <p className="mt-2 text-sm leading-6 text-slate-600">Your account information and useful account links.</p>
+        </header>
 
-            <div className="flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
-              >
-                Edit profile
-              </button>
-              <button
-                type="button"
-                className="inline-flex items-center justify-center rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700"
-              >
-                Update account
-              </button>
+        <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+          <div className="bg-gradient-to-r from-sky-50 via-white to-cyan-50 p-5 sm:p-7">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-sky-600 text-xl font-bold text-white shadow-sm" aria-hidden="true">{initials}</div>
+              <div className="min-w-0">
+                <h2 className="truncate text-xl font-bold tracking-tight text-slate-900">{user.name}</h2>
+                <p className="mt-1 break-all text-sm text-slate-600">{user.email || "Email not available"}</p>
+              </div>
+              <div className="sm:ml-auto">
+                <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">Account signed in</span>
+              </div>
             </div>
           </div>
 
-          <div className="grid gap-4 p-5 md:grid-cols-3 md:p-7">
-            <InfoItem icon={<UserRound size={18} />} label="Full name" value={user.name} />
-            <InfoItem icon={<Mail size={18} />} label="Email" value={user.email || "Not provided"} />
-            <InfoItem icon={<Phone size={18} />} label="Phone" value={user.phone || "Not provided"} />
+          <div className="grid gap-px border-t border-slate-100 bg-slate-100 sm:grid-cols-3">
+            <ProfileDetail icon={<UserRound size={17} />} label="Full name" value={user.name} />
+            <ProfileDetail icon={<Mail size={17} />} label="Email address" value={user.email || "Not provided"} />
+            <ProfileDetail icon={<Phone size={17} />} label="Phone number" value={user.phone || "Not provided"} />
           </div>
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="space-y-6">
-            <Card title="Account overview" subtitle="Your current profile details and status.">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-[0.12em] text-slate-400">Member since</p>
-                    <p className="mt-1 text-base font-semibold text-slate-900">March 2026</p>
-                  </div>
-                  <div className="rounded-xl bg-sky-100 px-3 py-2 text-sm font-semibold text-sky-700">Verified</div>
-                </div>
-
-                <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4">
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-[0.12em] text-slate-400">Preferred network</p>
-                    <p className="mt-1 text-base font-semibold text-slate-900">MTN</p>
-                  </div>
-                  <Link href="/buy-data" className="inline-flex items-center gap-2 text-sm font-semibold text-sky-600 hover:text-sky-700">
-                    Change <ChevronRight size={16} />
-                  </Link>
-                </div>
+        <section className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <div className="mb-5">
+              <h2 className="font-semibold text-slate-900">Account & security</h2>
+              <p className="mt-1 text-sm text-slate-500">Keep your sign-in details safe and up to date.</p>
+            </div>
+            <div className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <span className="rounded-lg bg-white p-2 text-sky-700 shadow-sm"><LockKeyhole size={18} /></span>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-slate-900">Password protection</p>
+                <p className="mt-1 text-sm leading-5 text-slate-600">Never share your password or one-time passcodes. If you need help accessing your account, contact support.</p>
+                <Link href="/support" className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-sky-700 hover:text-sky-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500">Get account help <ArrowRight size={15} /></Link>
               </div>
-            </Card>
-
-            <Card title="Security" subtitle="Manage access and account protection.">
-              <div className="space-y-3">
-                {[
-                  { label: "Password", value: "Last updated 2 months ago" },
-                  { label: "Two-factor authentication", value: "Not enabled" },
-                  { label: "Login activity", value: "Checked today" },
-                ].map((item) => (
-                  <button
-                    key={item.label}
-                    type="button"
-                    className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:border-slate-300 hover:bg-slate-50"
-                  >
-                    <div>
-                      <p className="font-medium text-slate-900">{item.label}</p>
-                      <p className="mt-1 text-sm text-slate-500">{item.value}</p>
-                    </div>
-                    <ChevronRight size={18} className="text-slate-400" />
-                  </button>
-                ))}
+            </div>
+            <div className="mt-3 flex items-start gap-3 rounded-xl border border-slate-200 p-4">
+              <span className="rounded-lg bg-sky-50 p-2 text-sky-700"><Bell size={18} /></span>
+              <div>
+                <p className="text-sm font-semibold text-slate-900">Order updates</p>
+                <p className="mt-1 text-sm leading-5 text-slate-600">Check the latest payment and order status from your transaction history.</p>
+                <Link href="/transactions" className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-sky-700 hover:text-sky-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500">View transactions <ArrowRight size={15} /></Link>
               </div>
-            </Card>
+            </div>
           </div>
 
-          <div className="space-y-6">
-            <Card title="Notifications" subtitle="Choose what you want to hear about.">
-              <div className="space-y-3">
-                {[
-                  { label: "Data purchase updates", enabled: true },
-                  { label: "Wallet activity", enabled: true },
-                  { label: "Promotions and offers", enabled: false },
-                ].map((item) => (
-                  <div key={item.label} className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="rounded-xl bg-sky-50 p-2 text-sky-600">
-                        <Bell size={16} />
-                      </div>
-                      <div>
-                        <p className="font-medium text-slate-900">{item.label}</p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      aria-pressed={item.enabled}
-                      className={`relative h-6 w-11 rounded-full transition ${item.enabled ? "bg-sky-600" : "bg-slate-200"}`}
-                    >
-                      <span
-                        className={`absolute top-1 h-4 w-4 rounded-full bg-white transition ${item.enabled ? "left-6" : "left-1"}`}
-                      />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </Card>
-
-            <Card title="Quick actions" subtitle="Helpful links for your account.">
-              <div className="space-y-3">
-                <ActionLink href="/dashboard" label="Go to dashboard" />
-                <ActionLink href="/wallet" label="Manage wallet" />
-                <ActionLink href="/support" label="Contact support" />
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="rounded-xl bg-emerald-100 p-2 text-emerald-700">
-                      <ShieldCheck size={16} />
-                    </div>
-                    <div>
-                      <p className="font-medium text-slate-900">Protected account</p>
-                      <p className="mt-1 text-sm text-slate-600">Your account security is active and monitored.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Card>
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <div className="mb-4">
+              <h2 className="font-semibold text-slate-900">Quick links</h2>
+              <p className="mt-1 text-sm text-slate-500">Get to the things you use most.</p>
+            </div>
+            <div className="space-y-2">
+              <ProfileLink href="/wallet" icon={<WalletCards size={18} />} label="My wallet" detail="View your balance and funding activity" />
+              <ProfileLink href="/buy-data" icon={<Phone size={18} />} label="Buy data" detail="Browse available network bundles" />
+              <ProfileLink href="/support" icon={<CircleHelp size={18} />} label="Help & support" detail="Get guidance with an order or account" />
+            </div>
           </div>
         </section>
       </main>
@@ -166,52 +95,24 @@ export default function ProfilePage() {
   );
 }
 
-function Card({
-  title,
-  subtitle,
-  children,
-}: {
-  title: string;
-  subtitle: string;
-  children: React.ReactNode;
-}) {
+function ProfileDetail({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
-        <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
-      </div>
-      {children}
+    <div className="min-w-0 bg-white p-4 sm:p-5">
+      <div className="flex items-center gap-2 text-sky-700">{icon}<span className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</span></div>
+      <p className="mt-2 break-words text-sm font-semibold text-slate-900">{value}</p>
     </div>
   );
 }
 
-function InfoItem({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
+function ProfileLink({ href, icon, label, detail }: { href: string; icon: React.ReactNode; label: string; detail: string }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm">
-      <div className="flex items-center gap-2 text-sky-600">{icon}</div>
-      <p className="mt-3 text-xs font-medium uppercase tracking-[0.12em] text-slate-400">{label}</p>
-      <p className="mt-2 text-base font-semibold text-slate-900">{value}</p>
-    </div>
-  );
-}
-
-function ActionLink({ href, label }: { href: string; label: string }) {
-  return (
-    <Link
-      href={href}
-      className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:border-slate-300 hover:bg-slate-50"
-    >
-      <span className="font-medium text-slate-900">{label}</span>
-      <ChevronRight size={18} className="text-slate-400" />
+    <Link href={href} className="group flex items-center gap-3 rounded-xl border border-slate-200 p-3.5 transition hover:border-sky-200 hover:bg-sky-50/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500">
+      <span className="rounded-lg bg-sky-50 p-2.5 text-sky-700">{icon}</span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-semibold text-slate-900">{label}</span>
+        <span className="mt-0.5 block text-xs leading-5 text-slate-500">{detail}</span>
+      </span>
+      <ChevronRight size={18} className="shrink-0 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-sky-700" />
     </Link>
   );
 }
