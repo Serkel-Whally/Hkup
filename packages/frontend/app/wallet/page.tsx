@@ -132,7 +132,16 @@ export default function WalletPage() {
               <h2 className="font-semibold text-slate-900">Fund wallet</h2>
               <p className="mt-1 text-sm text-slate-500">Choose an amount and complete payment with Paystack.</p>
             </div>
-            <label htmlFor="funding-amount" className="block text-sm font-medium text-slate-700">Amount (GHS)</label>
+            <div>
+              <label htmlFor="funding-amount" className="block text-sm font-medium text-slate-700">Amount (GHS)</label>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {[20, 50, 100, 200].map((preset) => (
+                  <button key={preset} type="button" onClick={() => setAmount(String(preset))} aria-pressed={amount === String(preset)} className={`rounded-lg border px-3 py-2 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${amount === String(preset) ? "border-sky-500 bg-sky-50 text-sky-700" : "border-slate-200 bg-white text-slate-600 hover:border-sky-300"}`}>
+                    GH₵ {preset}
+                  </button>
+                ))}
+              </div>
+            </div>
             <input
               id="funding-amount"
               type="number"
@@ -144,7 +153,9 @@ export default function WalletPage() {
               onChange={(event) => setAmount(event.target.value)}
               className="w-full rounded-xl border border-slate-200 px-3.5 py-3 text-sm outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
               placeholder="e.g. 50.00"
+              aria-describedby="funding-hint"
             />
+            <p id="funding-hint" className="text-xs leading-5 text-slate-500">Enter the amount you want to add. Your balance updates after payment verification.</p>
             <button
               type="submit"
               disabled={funding || !amount || Number(amount) <= 0}
