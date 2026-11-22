@@ -18,7 +18,7 @@ type Bundle = { bundleId: string; network: string; size: string; validity: strin
 
 function getCategory(bundle: Bundle): Exclude<Category, "All bundles"> {
   if (/night/i.test(bundle.validity)) return "Night Bundles";
-  if (/^(?:[3-9]\\d|\\d{3,})GB$/i.test(bundle.size)) return "Mega Bundles";
+  if (/^(?:[3-9]\d|\d{3,})GB$/i.test(bundle.size)) return "Mega Bundles";
   return "Data Bundles";
 }
 
