@@ -160,7 +160,7 @@ export default function SignupPage() {
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword((value) => !value)}
-                className="text-xs font-medium text-sky-600 hover:text-sky-700"
+                className="rounded-md px-1 py-1 text-xs font-medium text-sky-600 hover:text-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
               >
                 {showConfirmPassword ? "Hide" : "Show"}
               </button>
