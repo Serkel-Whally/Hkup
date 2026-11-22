@@ -5,7 +5,7 @@ const User = require('../models/User');
 const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'change_this_secret';
+const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = '7d';
 
 function signToken(user) {
@@ -14,6 +14,7 @@ function signToken(user) {
 
 router.post('/register', async (req, res) => {
   try {
+    if (!JWT_SECRET) return res.status(503).json({ error: 'Authentication is not configured on this server' });
     const { name, email, password, phone } = req.body || {};
 
     if (!email || !password) {
@@ -51,6 +52,7 @@ router.post('/register', async (req, res) => {
 
 router.post('/login', async (req, res) => {
   try {
+    if (!JWT_SECRET) return res.status(503).json({ error: 'Authentication is not configured on this server' });
     const { email, password } = req.body || {};
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password required' });
