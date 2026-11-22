@@ -10,7 +10,6 @@ import {
   CircleHelp,
   LockKeyhole,
   Mail,
-  Phone,
   ShieldCheck,
   Smartphone,
   UserRound,
