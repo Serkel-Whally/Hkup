@@ -119,7 +119,7 @@ export function CheckoutPage({ modal = false, details, onClose }: CheckoutPagePr
         if (!bundle || !Number.isFinite(Number(bundle.price)) || Number(bundle.price) <= 0) throw new Error("This bundle is no longer available");
         if (cancelled) return;
         const networkIds: Record<string, string> = { MTN: "mtn", Telecel: "telecel", AirtelTigo: "airtel" };
-        setNetwork(networkIds[bundle.network] ?? network);
+        setNetwork(networkIds[bundle.network] ?? "mtn");
         setSize(bundle.size);
         setValidity(bundle.validity);
         setPrice("GH₵ " + Number(bundle.price).toFixed(2));
@@ -193,7 +193,7 @@ export function CheckoutPage({ modal = false, details, onClose }: CheckoutPagePr
               <section>
                 <h2 className="mb-1 text-[17px] font-semibold tracking-[-0.02em] text-slate-900">Where should we send it?</h2>
                 <p className="mb-3 text-[13px] text-slate-500">Enter the Ghana number that will receive this bundle.</p>
-                <div className={`rounded-[16px] border bg-white px-3 shadow-sm ${phoneError ? "border-red-300" : "border-slate-200"}`}>
+                <div className={`rounded-[16px] border bg-white px-3 shadow-sm transition-all focus-within:border-blue-300 focus-within:ring-2 focus-within:ring-blue-100 ${phoneError ? "border-red-300" : "border-slate-200"}`}>
                   <div className="flex h-[60px] items-center gap-3">
                     <Phone size={18} className="text-slate-500" />
                     <input
