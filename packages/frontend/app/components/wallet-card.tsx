@@ -1,22 +1,56 @@
-"use client"
+"use client";
+
 import { Plus, ArrowRight } from "lucide-react";
 
-export default function WalletCard({ amount = 'GH₵ 0.00', onFund }: any) {
+type WalletCardProps = {
+  amount?: string;
+  onFund?: () => void;
+};
+
+export default function WalletCard({
+  amount = "GH₵ 0.00",
+  onFund,
+}: WalletCardProps) {
   return (
-    <section className="w-full">
+    <section className="w-full" aria-label="Wallet overview">
       <div className="wallet-card-shell">
         <div className="wallet-card-content">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div>
-              <div className="text-sm opacity-90">Wallet Balance</div>
-              <div className="text-2xl md:text-3xl font-semibold mt-1">{amount}</div>
-              <div className="text-xs md:text-sm opacity-90 mt-1">Available Balance</div>
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-2">
+              <p className="text-sm font-medium opacity-90">
+                Available balance
+              </p>
+
+              <p
+                className="text-3xl font-bold tracking-tight sm:text-4xl"
+                aria-label={`Wallet balance ${amount}`}
+              >
+                {amount}
+              </p>
+
+              <p className="text-xs opacity-85">
+                Ready to spend
+              </p>
             </div>
-            <div className="ml-auto md:ml-0">
-              <button onClick={onFund} aria-label="Fund wallet" className="inline-flex items-center gap-2 bg-white text-sky-700 px-4 py-2 rounded-lg shadow-sm focus-visible:ring-2 focus-visible:ring-sky-300">
-                <Plus aria-hidden /> <span>Fund Wallet</span> <ArrowRight size={16} aria-hidden />
-              </button>
-            </div>
+
+            <button
+              type="button"
+              onClick={onFund}
+              className="
+                inline-flex w-full items-center justify-center gap-2
+                rounded-xl bg-white px-5 py-3
+                font-semibold text-sky-700 shadow-sm
+                transition-colors hover:bg-sky-50
+                active:scale-[0.98]
+                focus-visible:outline focus-visible:outline-2
+                focus-visible:outline-offset-4 focus-visible:outline-white
+                sm:w-auto
+              "
+            >
+              <Plus size={18} aria-hidden="true" />
+              <span>Fund Wallet</span>
+              <ArrowRight size={16} aria-hidden="true" />
+            </button>
           </div>
         </div>
       </div>
