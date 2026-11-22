@@ -34,6 +34,11 @@ function formatDate(value?: string | null) {
     : new Intl.DateTimeFormat("en-GH", { dateStyle: "medium", timeStyle: "short" }).format(date);
 }
 
+function formatStatus(value?: string | null) {
+  if (!value) return "Not available";
+  return value.toLowerCase().replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
 export default function TransactionDetailsPage() {
   const params = useParams<{ orderId: string }>();
   const router = useRouter();
@@ -96,7 +101,7 @@ export default function TransactionDetailsPage() {
                 </div>
                 <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold ${isComplete ? "bg-emerald-50 text-emerald-700" : isFailed ? "bg-rose-50 text-rose-700" : "bg-sky-50 text-sky-700"}`}>
                   {isComplete ? <CheckCircle2 size={16} /> : isFailed ? <XCircle size={16} /> : <Clock3 size={16} />}
-                  {order.orderStatus}
+                  {formatStatus(order.orderStatus)}
                 </span>
               </div>
 
@@ -105,7 +110,7 @@ export default function TransactionDetailsPage() {
                 <Detail label="Validity" value={order.validity || "Not available"} />
                 <Detail label="Recipient number" value={order.recipientPhone || "Not available"} />
                 <Detail label="Amount" value={`${order.currency || "GHS"} ${Number(order.amount).toFixed(2)}`} />
-                <Detail label="Payment status" value={order.paymentStatus} />
+                <Detail label="Payment status" value={formatStatus(order.paymentStatus)} />
                 <Detail label="Payment method" value={order.paymentMethod || "Not available"} />
                 <Detail label="Placed" value={formatDate(order.createdAt)} />
                 <Detail label="Paid" value={formatDate(order.paidAt)} />
@@ -125,13 +130,13 @@ export default function TransactionDetailsPage() {
                 <ProgressItem label="Order created" detail={formatDate(order.createdAt)} complete />
                 <ProgressItem
                   label="Payment"
-                  detail={order.paymentStatus === "PAID" ? formatDate(order.paidAt) : order.paymentStatus}
+                  detail={order.paymentStatus === "PAID" ? formatDate(order.paidAt) : formatStatus(order.paymentStatus)}
                   complete={order.paymentStatus === "PAID"}
                   failed={order.paymentStatus === "FAILED"}
                 />
                 <ProgressItem
                   label="Data delivery"
-                  detail={isComplete ? formatDate(order.completedAt) : order.orderStatus}
+                  detail={isComplete ? formatDate(order.completedAt) : formatStatus(order.orderStatus)}
                   complete={isComplete}
                   failed={isFailed}
                 />
