@@ -107,6 +107,7 @@ export function CheckoutPage({ modal = false, details, onClose }: CheckoutPagePr
     }
     let cancelled = false;
     setPriceVerified(false);
+    setSubmitError("");
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
     fetch(apiUrl + "/api/bundles")
       .then(async (response) => {
