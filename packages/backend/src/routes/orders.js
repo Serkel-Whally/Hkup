@@ -6,55 +6,50 @@ const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.post('/', async (req, res) => {
+// Orders belong to an authenticated customer. Prices and bundle details are
+// always loaded from the database; client-supplied totals are never trusted.
+router.post('/', requireAuth, async (req, res) => {
   try {
     const {
-      network,
       bundleId,
+      network,
       bundleSize,
-      validity,
       recipientPhone,
-      paymentMethod = 'Wallet',
-      paymentProvider = null,
+      paymentMethod = 'Card',
+      paymentProvider = 'Paystack',
     } = req.body || {};
 
-    if (!network || !recipientPhone || !bundleSize) {
-      return res.status(400).json({ error: 'network, bundleSize and recipientPhone are required' });
+    if (!bundleId || !recipientPhone) {
+      return res.status(400).json({ error: 'bundleId and recipientPhone are required' });
+    }
+    if (paymentProvider !== 'Paystack' || !['Card', 'Mobile Money'].includes(paymentMethod)) {
+      return res.status(400).json({ error: 'Unsupported payment method' });
     }
 
-    const bundle = bundleId
-      ? await Bundle.findOne({ bundleId, active: true })
-      : await Bundle.findOne({ network, size: bundleSize, active: true }).sort({ price: 1 });
-
-    if (!bundle) {
-      return res.status(404).json({ error: 'Bundle not found' });
+    const bundle = await Bundle.findOne({ bundleId, active: true }).lean();
+    if (!bundle) return res.status(404).json({ error: 'Bundle not found or unavailable' });
+    if (network && network !== bundle.network) {
+      return res.status(400).json({ error: 'Selected network does not match this bundle' });
+    }
+    if (bundleSize && bundleSize !== bundle.size) {
+      return res.status(400).json({ error: 'Selected bundle size does not match this bundle' });
     }
 
-    const normalizedRecipient = String(recipientPhone).replace(/\s+/g, '').trim();
+    const normalizedRecipient = String(recipientPhone).replace(/[\s()-]/g, '').trim();
     if (!/^(?:0[2-9]\d{8}|(?:\+?233)[2-9]\d{8})$/.test(normalizedRecipient)) {
       return res.status(400).json({ error: 'Invalid recipient phone number' });
     }
 
-    const orderId = `CLD-${Date.now()}-${uuid().slice(0, 8).toUpperCase()}`;
-    let userId = null;
-    const authorization = req.headers.authorization || '';
-    if (authorization.startsWith('Bearer ')) {
-      try {
-        const jwt = require('jsonwebtoken');
-        const payload = jwt.verify(authorization.slice(7), process.env.JWT_SECRET || 'change_this_secret');
-        userId = payload.sub;
-      } catch (_) {}
-    }
-
-    const order = new Order({
+    const orderId = `HKUP-${Date.now()}-${uuid().slice(0, 8).toUpperCase()}`;
+    const order = await Order.create({
       orderId,
-      userId,
-      planId: bundle.bundleId || null,
+      userId: req.user._id,
+      planId: bundle.bundleId,
       bundleId: bundle.bundleId,
       network: bundle.network,
       bundleSize: bundle.size,
       validity: bundle.validity,
-      recipientPhone,
+      recipientPhone: normalizedRecipient,
       amount: bundle.price,
       currency: 'GHS',
       paymentStatus: 'PENDING',
@@ -63,11 +58,10 @@ router.post('/', async (req, res) => {
       paymentProvider,
     });
 
-    await order.save();
-    res.status(201).json({ order });
+    return res.status(201).json({ order });
   } catch (err) {
     console.error('Create order error:', err);
-    res.status(500).json({ error: 'Server error' });
+    return res.status(500).json({ error: 'Server error' });
   }
 });
 
@@ -83,11 +77,8 @@ router.get('/', requireAuth, async (req, res) => {
 
 router.get('/:orderId', requireAuth, async (req, res) => {
   try {
-    const order = await Order.findOne({ orderId: req.params.orderId }).lean();
+    const order = await Order.findOne({ orderId: req.params.orderId, userId: req.user._id }).lean();
     if (!order) return res.status(404).json({ error: 'Order not found' });
-    if (String(order.userId) !== String(req.user._id)) {
-      return res.status(404).json({ error: 'Order not found' });
-    }
     res.json(order);
   } catch (err) {
     console.error('Get order error:', err);
