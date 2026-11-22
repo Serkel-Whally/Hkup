@@ -2,11 +2,17 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { login } from "@/app/lib/auth";
 
 export default function LoginPage() {
   const router = useRouter();
+  const [nextPath, setNextPath] = useState("");
+
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get("next");
+    if (requested && requested.startsWith("/") && !requested.startsWith("//")) setNextPath(requested);
+  }, []);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -114,7 +120,7 @@ export default function LoginPage() {
 
         <p className="mt-6 text-center text-sm text-slate-600">
           Don&apos;t have an account? {" "}
-          <Link href={"/signup" + (new URLSearchParams(window.location.search).get("next") ? "?next=" + encodeURIComponent(new URLSearchParams(window.location.search).get("next")!) : "")} className="font-semibold text-sky-600 hover:text-sky-700">
+          <Link href={"/signup" + (nextPath ? "?next=" + encodeURIComponent(nextPath) : "")} className="font-semibold text-sky-600 hover:text-sky-700">
             Create account
           </Link>
         </p>
