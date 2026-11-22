@@ -36,8 +36,8 @@ router.post('/', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'Selected bundle size does not match this bundle' });
     }
 
-    const normalizedRecipient = String(recipientPhone).replace(/[\s()-]/g, '').trim();
-    if (!/^(?:0[2-9]\d{8}|(?:\+?233)[2-9]\d{8})$/.test(normalizedRecipient)) {
+    const normalizedRecipient = normalizeGhanaPhone(recipientPhone);
+    if (!normalizedRecipient) {
       return res.status(400).json({ error: 'Invalid recipient phone number' });
     }
 
