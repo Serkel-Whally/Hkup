@@ -10,9 +10,12 @@ async function requireAuth(req, res, next) {
   if (!token) {
     return res.status(401).json({ error: 'Authentication required' });
   }
+  if (!process.env.JWT_SECRET) {
+    return res.status(503).json({ error: 'Authentication is not configured on this server' });
+  }
 
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET || 'change_this_secret');
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(payload.sub).lean();
     if (!user) {
       return res.status(401).json({ error: 'Invalid session' });
