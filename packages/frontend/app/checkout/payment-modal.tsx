@@ -23,8 +23,6 @@ const NETWORKS = [
 const getNetworkMeta = (networkId: string | null) =>
   NETWORKS.find((network) => network.id === networkId) ?? { id: "", name: "N/A", logo: "/mtn.svg" };
 
-const PAYSTACK_PUBLIC_KEY = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY;
-
 type PaymentModalProps = {
   network: string | null;
   bundleId: string | null;
@@ -46,7 +44,6 @@ export function PaymentModal({
 }: PaymentModalProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [paystackLoaded, setPaystackLoaded] = useState(false);
   const [email, setEmail] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"card" | "mobile">("card");
   const [touched, setTouched] = useState(false);
@@ -93,28 +90,6 @@ export function PaymentModal({
       previousFocus?.focus();
     };
   }, [close]);
-
-  // Load Paystack script
-  useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://js.paystack.co/v1/inline.js";
-    script.async = true;
-    script.onload = () => {
-      console.log("Paystack script loaded successfully");
-      setPaystackLoaded(true);
-    };
-    script.onerror = () => {
-      console.error("Failed to load Paystack script");
-      toast.error("Failed to load payment system. Please refresh and try again.");
-    };
-    document.body.appendChild(script);
-
-    return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
-      }
-    };
-  }, []);
 
   const validateEmail = (email: string) => {
     return String(email)
@@ -176,22 +151,6 @@ export function PaymentModal({
     try {
       setTouched(true);
 
-      if (!paystackLoaded) {
-        toast.error("Payment system is still loading. Please try again.");
-        return;
-      }
-
-      if (!validateEmail(email)) {
-        toast.error("Please enter a valid email address");
-        return;
-      }
-
-      if (!PAYSTACK_PUBLIC_KEY) {
-        console.error("Paystack public key not found");
-        toast.error("Payment configuration error. Please contact support.");
-        return;
-      }
-
       setLoading(true);
       setSubmitError("");
 
@@ -200,63 +159,19 @@ export function PaymentModal({
       const trustedAmount = Number(order.amount);
       if (!Number.isFinite(trustedAmount) || trustedAmount <= 0) throw new Error("The bundle price could not be confirmed. Please try again.");
       setConfirmedAmount(trustedAmount);
-      console.log("Initiating Paystack payment", { amount: trustedAmount, email, paymentMethod });
-      const reference = order.orderId;
-      const amountInPesewas = Math.round(trustedAmount * 100);
-
-      // Initialize Paystack payment
-      const handler = (window as any).PaystackPop.setup({
-        key: PAYSTACK_PUBLIC_KEY,
-        email: email,
-        amount: amountInPesewas,
-        currency: "GHS",
-        ref: reference,
-        channels:
-          paymentMethod === "mobile"
-            ? ["mobile_money"]
-            : ["card"],
-        label: "Pay for Data Bundle",
-        metadata: {
-          network: network,
-          bundle_id: bundleId,
-          size: size,
-          recipient: recipient,
-          order_id: order?._id,
-          custom_fields: [
-            {
-              display_name: "Network",
-              variable_name: "network",
-              value: network,
-            },
-            {
-              display_name: "Bundle Size",
-              variable_name: "bundle_size",
-              value: size,
-            },
-            {
-              display_name: "Recipient",
-              variable_name: "recipient",
-              value: recipient,
-            },
-          ],
-        },
-        callback: async function (response: any) {
-          try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-            const verificationResponse = await fetch(`${apiUrl}/api/payments/paystack/verify`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json", ...authHeaders() },
-              body: JSON.stringify({ reference: response.reference }),
-            });
-            const verification = await verificationResponse.json();
-            if (!verificationResponse.ok || verification.order?.paymentStatus !== "PAID") {
-              throw new Error(verification.error || "Payment could not be verified yet.");
-            }
-
-            toast.success("Payment verified. Your order is being processed.");
-            setLoading(false);
-            router.push(`/transactions/${encodeURIComponent(order.orderId)}`);
-          } catch (error) {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const initializeResponse = await fetch(`${apiUrl}/api/payments/paystack/initialize`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeaders() },
+        body: JSON.stringify({ orderId: order.orderId }),
+      });
+      const initialized = await initializeResponse.json();
+      const authorizationUrl = initialized?.data?.authorization_url;
+      if (!initializeResponse.ok || !authorizationUrl) {
+        throw new Error(initialized.error || "Unable to start secure payment.");
+      }
+      window.location.assign(authorizationUrl);
+    } catch (error) {
             const message = error instanceof Error ? error.message : "Payment could not be verified yet.";
             setSubmitError(message);
             toast.error(message);
@@ -503,9 +418,9 @@ export function PaymentModal({
             <button
               type="button"
               onClick={handlePayment}
-              disabled={loading || !paystackLoaded || !canSubmit}
+              disabled={loading || !canSubmit}
               className={`w-full rounded-[12px] px-6 py-3 font-semibold text-[15px] transition-all flex items-center justify-center gap-2 ${
-                loading || !paystackLoaded || !canSubmit
+                loading || !canSubmit
                   ? "bg-slate-100 text-slate-400 cursor-not-allowed"
                   : "bg-blue-600 text-white hover:bg-blue-700 active:scale-95"
               }`}
@@ -516,10 +431,10 @@ export function PaymentModal({
                   <Loader size={18} className="animate-spin" />
                   Processing...
                 </>
-              ) : !paystackLoaded ? (
+              ) : (
                 <>
-                  <Loader size={18} className="animate-spin" />
-                  Loading...
+                  <Lock size={18} />
+                  {confirmedAmount !== null ? "Pay GH₵ " + confirmedAmount.toFixed(2) : "Continue to secure payment"}
                 </>
               ) : (
                 <>
