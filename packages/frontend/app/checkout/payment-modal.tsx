@@ -245,7 +245,7 @@ export function PaymentModal({
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
             const verificationResponse = await fetch(`${apiUrl}/api/payments/paystack/verify`, {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: { "Content-Type": "application/json", ...authHeaders() },
               body: JSON.stringify({ reference: response.reference }),
             });
             const verification = await verificationResponse.json();
