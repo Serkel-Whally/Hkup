@@ -68,7 +68,7 @@ export function CheckoutPage({ modal = false, details, onClose }: CheckoutPagePr
   }, [details]);
 
   useEffect(() => {
-    if (!modal) return;
+    if (!modal || showPaymentModal) return;
     const previousOverflow = document.body.style.overflow;
     const previousFocus = document.activeElement as HTMLElement | null;
     document.body.style.overflow = "hidden";
@@ -80,7 +80,7 @@ export function CheckoutPage({ modal = false, details, onClose }: CheckoutPagePr
       (dialog?.querySelector<HTMLElement>("input") ?? focusable()[0])?.focus();
     });
     const handleKeys = (event: KeyboardEvent) => {
-      if (event.key === "Escape") { close(); return; }
+      if (event.key === "Escape" && !showPaymentModal) { close(); return; }
       if (event.key !== "Tab") return;
       const items = focusable();
       if (!items.length) return;
@@ -98,7 +98,7 @@ export function CheckoutPage({ modal = false, details, onClose }: CheckoutPagePr
       document.removeEventListener("keydown", handleKeys);
       previousFocus?.focus();
     };
-  }, [modal, close]);
+  }, [modal, close, showPaymentModal]);
 
   useEffect(() => {
     if (!bundleId) {
