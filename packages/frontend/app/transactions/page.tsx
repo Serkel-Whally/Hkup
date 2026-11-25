@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, ReceiptText } from "lucide-react";
+import { ArrowRight, ReceiptText, Search } from "lucide-react";
 import { DashboardShell } from "@/app/components/dashboard-shell";
 import TransactionItem from "@/app/components/transaction-item";
 import { authHeaders, clearAuthSession, getAuthSession } from "@/app/lib/auth";
@@ -32,6 +32,8 @@ export default function TransactionsPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"All" | "Successful" | "Processing" | "Failed" | "Refunded">("All");
 
   useEffect(() => {
     if (!getAuthSession()?.token) {
@@ -63,6 +65,7 @@ export default function TransactionsPage() {
 
   const transactions = useMemo(() => orders.map((order) => ({
     id: order.orderId,
+    recipient: order.recipientPhone,
     network: order.network,
     bundle: `${order.bundleSize} Data Bundle`,
     validity: order.validity,
@@ -70,6 +73,13 @@ export default function TransactionsPage() {
     datetime: new Intl.DateTimeFormat("en-GH", { dateStyle: "medium", timeStyle: "short" }).format(new Date(order.createdAt)),
     status: getOrderLabel(order),
   })), [orders]);
+
+  const filteredTransactions = transactions.filter((transaction) => {
+    const matchesStatus = statusFilter === "All" || transaction.status === statusFilter;
+    const term = search.trim().toLowerCase();
+    const matchesSearch = !term || [transaction.id, transaction.network, transaction.bundle, transaction.recipient, transaction.amount].some((value) => String(value || "").toLowerCase().includes(term));
+    return matchesStatus && matchesSearch;
+  });
 
   return (
     <DashboardShell active="/transactions">
@@ -85,21 +95,49 @@ export default function TransactionsPage() {
           </Link>
         </header>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6" aria-label="Transaction history">
+        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm" aria-label="Transaction history">
+          <div className="border-b border-slate-100 p-4 sm:p-5">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="font-semibold text-slate-900">Your activity</h2>
+                <p className="mt-1 text-xs text-slate-500">{loading ? "Loading your orders..." : `${filteredTransactions.length} of ${transactions.length} transactions`}</p>
+              </div>
+              <label className="flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 focus-within:border-sky-300 focus-within:ring-2 focus-within:ring-sky-100 sm:w-72">
+                <Search size={17} className="shrink-0 text-slate-400" aria-hidden="true" />
+                <span className="sr-only">Search transactions</span>
+                <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search order, network or number" className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-slate-400" />
+              </label>
+            </div>
+            <div className="mt-4 flex gap-2 overflow-x-auto pb-1" aria-label="Filter transactions by status">
+              {(["All", "Successful", "Processing", "Failed", "Refunded"] as const).map((status) => (
+                <button key={status} type="button" onClick={() => setStatusFilter(status)} aria-pressed={statusFilter === status} className={`shrink-0 rounded-full px-3.5 py-2 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${statusFilter === status ? "bg-sky-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>
+                  {status}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="p-4 sm:p-5">
           {loading ? (
             <p className="py-12 text-center text-sm text-slate-500" role="status">Loading transactions...</p>
           ) : error ? (
             <p className="py-12 text-center text-sm text-rose-700" role="alert">{error}</p>
-          ) : transactions.length ? (
+          ) : filteredTransactions.length ? (
             <ul className="space-y-3">
-              {transactions.map((transaction, index) => (
+              {filteredTransactions.map((transaction) => (
                 <TransactionItem
                   key={transaction.id}
                   transaction={transaction}
-                  href={`/transactions/${encodeURIComponent(orders[index].orderId)}`}
+                  href={`/transactions/${encodeURIComponent(transaction.id)}`}
                 />
               ))}
             </ul>
+          ) : transactions.length ? (
+            <div className="py-12 text-center">
+              <Search className="mx-auto text-slate-400" size={30} aria-hidden="true" />
+              <h2 className="mt-3 font-semibold text-slate-900">No matching transactions</h2>
+              <p className="mt-1 text-sm text-slate-500">Try another search term or status filter.</p>
+              <button type="button" onClick={() => { setSearch(""); setStatusFilter("All"); }} className="mt-4 text-sm font-semibold text-sky-700 hover:text-sky-800">Clear filters</button>
+            </div>
           ) : (
             <div className="py-12 text-center">
               <ReceiptText className="mx-auto text-slate-400" size={32} aria-hidden="true" />
@@ -107,6 +145,7 @@ export default function TransactionsPage() {
               <p className="mt-1 text-sm text-slate-500">Your data purchases will appear here.</p>
             </div>
           )}
+          </div>
         </section>
       </main>
     </DashboardShell>

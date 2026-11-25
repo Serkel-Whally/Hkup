@@ -17,6 +17,10 @@
     "concurrently": "^8.2.2",
     "postcss": "^8.4.32",
     "postcss-selector-parser": "^6.0.16",
-    "typescript": "5.3.3"
+    "typescript": "5.3.3",
+    "eslint": "8.57.1"
+  },
+  "overrides": {
+    "eslint": "8.57.1"
   }
 }

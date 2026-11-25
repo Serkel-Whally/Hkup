@@ -90,6 +90,9 @@ router.post('/fund/verify', async (req, res) => {
       if (!verification) {
         return res.status(502).json({ error: 'Paystack verification failed' });
       }
+      if (String(verification.reference || '') !== reference) {
+        return res.status(400).json({ error: 'Payment reference mismatch' });
+      }
       await settleWalletFunding(reference, verification);
     }
 

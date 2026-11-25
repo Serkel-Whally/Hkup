@@ -2,11 +2,17 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { login } from "@/app/lib/auth";
 
 export default function LoginPage() {
   const router = useRouter();
+  const [nextPath, setNextPath] = useState("");
+
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get("next");
+    if (requested && requested.startsWith("/") && !requested.startsWith("//")) setNextPath(requested);
+  }, []);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -27,7 +33,11 @@ export default function LoginPage() {
 
     try {
       await login({ email: trimmedEmail, password });
-      router.push("/dashboard");
+      const requestedNext = new URLSearchParams(window.location.search).get("next");
+      const safeNext = requestedNext && requestedNext.startsWith("/") && !requestedNext.startsWith("//")
+        ? requestedNext
+        : "/dashboard";
+      router.replace(safeNext);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to log in.");
     } finally {
@@ -47,7 +57,7 @@ export default function LoginPage() {
           <p className="mt-2 text-sm text-slate-600">Access your xBundle account.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
             <label htmlFor="email" className="block text-sm font-medium text-slate-700">
               Email address
@@ -60,6 +70,7 @@ export default function LoginPage() {
               onChange={(event) => setEmail(event.target.value)}
               className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm text-slate-900 outline-none transition focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100"
               placeholder="you@example.com"
+              required
             />
           </div>
 
@@ -71,7 +82,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword((value) => !value)}
-                className="text-xs font-medium text-sky-600 hover:text-sky-700"
+                className="rounded-md px-1 py-1 text-xs font-medium text-sky-600 hover:text-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
               >
                 {showPassword ? "Hide" : "Show"}
               </button>
@@ -84,24 +95,19 @@ export default function LoginPage() {
               onChange={(event) => setPassword(event.target.value)}
               className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm text-slate-900 outline-none transition focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100"
               placeholder="Enter your password"
+              required
             />
           </div>
 
           {error ? (
-            <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            <div role="alert" aria-live="polite" className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
               {error}
             </div>
           ) : null}
 
-          <div className="flex items-center justify-between gap-3 text-sm text-slate-600">
-            <label className="inline-flex items-center gap-2">
-              <input type="checkbox" className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500" />
-              Remember me
-            </label>
-            <Link href="/login" className="font-medium text-sky-600 hover:text-sky-700">
-              Forgot password?
-            </Link>
-          </div>
+          <p className="text-center text-sm text-slate-500">
+            Having trouble signing in? <Link href="/support" className="font-semibold text-sky-700 hover:text-sky-800">Visit support</Link>.
+          </p>
 
           <button
             type="submit"
@@ -114,7 +120,7 @@ export default function LoginPage() {
 
         <p className="mt-6 text-center text-sm text-slate-600">
           Don&apos;t have an account? {" "}
-          <Link href="/signup" className="font-semibold text-sky-600 hover:text-sky-700">
+          <Link href={"/signup" + (nextPath ? "?next=" + encodeURIComponent(nextPath) : "")} className="font-semibold text-sky-600 hover:text-sky-700">
             Create account
           </Link>
         </p>

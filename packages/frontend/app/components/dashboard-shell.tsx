@@ -1,7 +1,7 @@
 "use client"
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
 	House,
@@ -12,7 +12,6 @@ import {
 	Headset,
 	Settings,
 	LogOut,
-	Bell,
 	Search,
 	ArrowRight,
 	Menu,
@@ -26,7 +25,6 @@ import MobileBottomNavigation from "./mobile-bottom-navigation";
 import { CheckoutPage } from "@/app/checkout/checkout-form";
 import AnnouncementPopup from "./announcement-popup";
 import { toast } from "sonner";
-import { getStoredNotifications } from "@/app/lib/notifications";
 import { authHeaders, clearAuthSession, getAuthSession } from "@/app/lib/auth";
 
 export function DashboardShell({ children, active = "/dashboard", hideNavigation = false }: any) {
@@ -35,7 +33,6 @@ export function DashboardShell({ children, active = "/dashboard", hideNavigation
 	const [drawerOpen, setDrawerOpen] = useState(false);
 	const [profileOpen, setProfileOpen] = useState(false);
 	const [userName, setUserName] = useState("Customer");
-	const [announcementUnreadCount, setAnnouncementUnreadCount] = useState(0);
 	const profileRef = useRef<HTMLDivElement | null>(null);
 	
 	const getActive = () => {
@@ -44,9 +41,6 @@ export function DashboardShell({ children, active = "/dashboard", hideNavigation
 		if (pathname === "/transactions") return "/transactions";
 		if (pathname === "/wallet") return "/wallet";
 		if (pathname === "/profile") return "/profile";
-		if (pathname === "/notifications") return "/notifications";
-		if (pathname === "/settings") return "/settings";
-		if (pathname === "/security") return "/security";
 		if (pathname === "/support") return "/support";
 		return active;
 	};
@@ -55,37 +49,10 @@ export function DashboardShell({ children, active = "/dashboard", hideNavigation
 	const shouldHideHeader = hideNavigation || pathname.startsWith("/transactions/");
 	const shouldHideBottomNavigation = hideNavigation;
 
-	const redirectToLogin = useCallback((targetPath = pathname) => {
-		router.replace(`/login?next=${encodeURIComponent(targetPath)}`);
-	}, [pathname, router]);
-
 	useEffect(() => {
-		const updateUnreadCount = () => {
-			setAnnouncementUnreadCount(getStoredNotifications().filter((notification) => notification.unread).length);
-		};
-
-		updateUnreadCount();
-		let isMounted = true;
-
-		const onNotificationsUpdated = () => {
-			updateUnreadCount();
-		};
-
-		window.addEventListener("cellulite-notifications-updated", onNotificationsUpdated);
-
-		const loadUser = () => {
-			if (!isMounted) return;
-			const session = getAuthSession();
-			setUserName(session?.user.name || session?.user.email || "Customer");
-		};
-
-		loadUser();
-
-		return () => {
-			isMounted = false;
-			window.removeEventListener("cellulite-notifications-updated", onNotificationsUpdated);
-		};
-	}, [pathname, redirectToLogin]);
+		const session = getAuthSession();
+		setUserName(session?.user.name || session?.user.email || "Customer");
+	}, [pathname]);
 
 	async function logout() {
 		clearAuthSession();
@@ -125,9 +92,9 @@ export function DashboardShell({ children, active = "/dashboard", hideNavigation
 
 					<div className="mt-6 mb-2 px-2 text-xs font-medium text-slate-400">BUY DATA</div>
 					<ul className="space-y-1 px-2">
-						<NetworkItem label="MTN" />
-						<NetworkItem label="Telecel" />
-						<NetworkItem label="AirtelTigo" />
+						<NetworkItem label="MTN" href="/buy-data?network=mtn" />
+						<NetworkItem label="Telecel" href="/buy-data?network=telecel" />
+						<NetworkItem label="AirtelTigo" href="/buy-data?network=airtel" />
 					</ul>
 
 					<div className="mt-6 mb-2 px-2 text-xs font-medium text-slate-400">ACCOUNT</div>
@@ -140,20 +107,15 @@ export function DashboardShell({ children, active = "/dashboard", hideNavigation
 				<div className="px-4 py-4">
 					<div className="border-t border-slate-100 pt-4 flex items-center justify-between">
 						<div className="flex items-center gap-3">
-							<Link href="/settings" className={`p-2 rounded-md hover:bg-slate-50 ${currentActive === "/settings" ? "bg-sky-50 text-sky-600" : "text-slate-700"}`} aria-label="Settings"><Settings size={18} /></Link>
+							<Link href="/profile" className={`p-2 rounded-md hover:bg-slate-50 ${currentActive === "/profile" ? "bg-sky-50 text-sky-600" : "text-slate-700"}`} aria-label="Profile and account"><Settings size={18} /></Link>
 							<button type="button" onClick={logout} className="p-2 rounded-md hover:bg-slate-50" aria-label="Logout"><LogOut size={18} /></button>
 						</div>
 					</div>
 
-					<div className="mt-4 bg-cyan-50 rounded-lg p-3 flex gap-3 items-start">
-						<div className="p-2 bg-white rounded-full">
-							<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 12c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2s10 4.477 10 10z" stroke="#06b6d4" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-						</div>
-						<div className="text-xs">
-							<div className="font-semibold">Join our WhatsApp</div>
-							<div className="text-slate-500">Get updates, offers and important notices</div>
-							<button className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded bg-white text-sky-600 text-sm shadow-sm">Join Now</button>
-						</div>
+					<div className="mt-4 rounded-xl border border-cyan-100 bg-cyan-50 p-3">
+						<div className="text-xs font-semibold text-slate-900">Need a hand?</div>
+						<p className="mt-1 text-xs leading-5 text-slate-600">Get help with a purchase or your account.</p>
+						<Link href="/support" className="mt-3 inline-flex min-h-9 items-center gap-2 rounded-lg bg-white px-3 text-xs font-semibold text-sky-700 shadow-sm transition hover:bg-sky-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500">Contact support <ArrowRight size={14} /></Link>
 					</div>
 				</div>
 			</aside>
@@ -173,16 +135,11 @@ export function DashboardShell({ children, active = "/dashboard", hideNavigation
 						</div>
 
 						<div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
-							<Link href="/notifications" className="relative p-2 rounded-md hover:bg-slate-50" aria-label="Notifications">
-								<Bell size={22} />
-								{announcementUnreadCount > 0 ? (
-									<span role="status" aria-label={`${announcementUnreadCount} unread announcements`} className="absolute -top-0.5 -right-0.5 bg-sky-600 text-white text-[9px] font-bold min-w-4 h-4 rounded-full flex items-center justify-center px-0.5">{announcementUnreadCount > 9 ? "9+" : announcementUnreadCount}</span>
-								) : null}
-							</Link>
+
 
 							<div ref={profileRef} className="hidden md:flex relative items-center gap-2 max-w-[220px]">
 								<div className="text-sm text-slate-800 font-medium truncate">{userName}</div>
-								<div className="text-xs text-slate-500">Premium</div>
+								
 								<button
 									type="button"
 									onClick={() => setProfileOpen((open) => !open)}
@@ -229,23 +186,33 @@ function NavItem({ label, icon, href, active }: any) {
 	);
 }
 
-function NetworkItem({ label }: any) {
+function NetworkItem({ label, href }: { label: string; href: string }) {
 	return (
 		<li>
-			<button className="flex items-center gap-3 w-full text-left px-3 py-2 rounded-md text-sm hover:bg-slate-50 text-slate-700">
-				<div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-xs font-semibold">{label[0]}</div>
-				<div>{label}</div>
-			</button>
+			<Link href={href} className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500">
+				<span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold">{label[0]}</span>
+				<span>{label}</span>
+			</Link>
 		</li>
 	);
 }
 
 function SearchBar() {
+	const router = useRouter();
+	const [query, setQuery] = useState("");
+
+	function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+		event.preventDefault();
+		const search = query.trim();
+		router.push(search ? `/buy-data?search=${encodeURIComponent(search)}` : "/buy-data");
+	}
+
 	return (
-		<div className="relative">
-			<input aria-label="Search anything" placeholder="Search anything..." className="w-full rounded-full border border-slate-100 px-4 py-3 pr-11 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-sky-200" />
-			<div className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400"><Search /></div>
-		</div>
+		<form onSubmit={handleSubmit} role="search" className="relative">
+			<label htmlFor="dashboard-search" className="sr-only">Search data bundles</label>
+			<input id="dashboard-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search data bundles..." className="w-full rounded-full border border-slate-100 bg-white px-4 py-3 pr-11 text-sm outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100" />
+			<button type="submit" aria-label="Search bundles" className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-slate-400 transition hover:bg-sky-50 hover:text-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"><Search size={18} /></button>
+		</form>
 	);
 }
 
@@ -274,6 +241,9 @@ export function DashboardHome() {
 	const [walletBalance, setWalletBalance] = useState<string | null>(null);
 	const [orders, setOrders] = useState<DashboardOrder[]>([]);
 	const [popularBundles, setPopularBundles] = useState<any[]>([]);
+	const [dashboardLoading, setDashboardLoading] = useState(true);
+	const [bundlesLoadError, setBundlesLoadError] = useState(false);
+	const [ordersLoadError, setOrdersLoadError] = useState(false);
 
 	useEffect(() => {
 		const hour = new Date().getHours();
@@ -283,46 +253,25 @@ export function DashboardHome() {
 
 		const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 		const loadData = async () => {
-			try {
-				const [bundlesResponse, ordersResponse, walletResponse] = await Promise.all([
-					fetch(`${apiUrl}/api/bundles`),
-					fetch(`${apiUrl}/api/orders`, { headers: authHeaders() }),
-					fetch(`${apiUrl}/api/wallets`, { headers: authHeaders() }),
-				]);
-				if (bundlesResponse.ok) {
-					const bundles = await bundlesResponse.json() as any[];
-					setPopularBundles(bundles.filter((bundle) => bundle.isPopular).slice(0, 6).map((bundle) => ({
-						id: bundle.bundleId,
-						network: bundle.network,
-						size: bundle.size,
-						price: `GH₵ ${Number(bundle.price).toFixed(2)}`,
-						validity: bundle.validity,
-						popular: true,
-					})));
-				}
-				if (ordersResponse.ok) {
-					const data = await ordersResponse.json();
-					setOrders((data.orders || []).map((order: any) => ({
-						id: order.orderId,
-						network: order.network,
-						bundleSize: order.bundleSize,
-						recipientPhone: order.recipientPhone,
-						amount: order.amount,
-						paymentStatus: order.paymentStatus,
-						deliveryStatus: order.orderStatus,
-						createdAt: order.createdAt,
-					})));
-				}
-				if (walletResponse.ok) {
-					const wallet = await walletResponse.json();
-					setWalletBalance(`GH₵ ${Number(wallet.balance).toFixed(2)}`);
-				} else {
-					setWalletBalance("Unavailable");
-				}
-			} catch {
-				setPopularBundles([]);
-				setWalletBalance("Unavailable");
-			}
+			const results = await Promise.allSettled([
+				fetch(`${apiUrl}/api/bundles`).then(async (response) => { if (!response.ok) throw new Error("Bundles unavailable"); return response.json(); }),
+				fetch(`${apiUrl}/api/orders`, { headers: authHeaders() }).then(async (response) => { if (!response.ok) throw new Error("Transactions unavailable"); return response.json(); }),
+				fetch(`${apiUrl}/api/wallets`, { headers: authHeaders() }).then(async (response) => { if (!response.ok) throw new Error("Wallet unavailable"); return response.json(); }),
+			]);
+			const [bundlesResult, ordersResult, walletResult] = results;
+			setBundlesLoadError(bundlesResult.status === "rejected");
+			setOrdersLoadError(ordersResult.status === "rejected");
+			if (bundlesResult.status === "fulfilled") {
+				const bundles = bundlesResult.value as any[];
+				setPopularBundles(bundles.filter((bundle) => bundle.isPopular).slice(0, 6).map((bundle) => ({ id: bundle.bundleId, network: bundle.network, size: bundle.size, price: "GH₵ " + Number(bundle.price).toFixed(2), validity: bundle.validity, popular: true })));
+			} else { setPopularBundles([]); }
+			if (ordersResult.status === "fulfilled") {
+				const data = ordersResult.value;
+				setOrders((data.orders || []).map((order: any) => ({ id: order.orderId, network: order.network, bundleSize: order.bundleSize, recipientPhone: order.recipientPhone, amount: order.amount, paymentStatus: order.paymentStatus, deliveryStatus: order.orderStatus, createdAt: order.createdAt })));
+			} else { setOrders([]); }
+			if (walletResult.status === "fulfilled") { setWalletBalance("GH₵ " + Number(walletResult.value.balance).toFixed(2)); }
+			else { setWalletBalance("Unavailable"); }
+			setDashboardLoading(false);
 		};
 		loadData();
 	}, []);
@@ -403,14 +352,14 @@ export function DashboardHome() {
 					<h3 className="text-lg md:text-xl font-semibold text-slate-900">Popular Bundles</h3>
 					<Link href="/buy-data" className="text-sm font-medium text-sky-600 hover:text-sky-700">View all</Link>
 				</div>
-				{popularBundles.length > 0 ? (
+				{dashboardLoading ? (
+					<div className="flex gap-3 overflow-hidden" role="status" aria-live="polite">{[0, 1, 2].map((item) => <div key={item} className="h-36 min-w-[190px] animate-pulse rounded-2xl border border-slate-100 bg-white" />)}<span className="sr-only">Loading popular bundles</span></div>
+				) : popularBundles.length > 0 ? (
 					<div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-3 pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-4">
-						{popularBundles.map((bundle) => (
-							<BundleCard key={bundle.id} bundle={bundle} onSelect={handlePopularBundleSelect} />
-						))}
+						{popularBundles.map((bundle) => (<BundleCard key={bundle.id} bundle={bundle} onSelect={handlePopularBundleSelect} />))}
 					</div>
 				) : (
-					<p className="rounded-2xl border border-dashed border-slate-200 bg-white p-4 text-sm text-slate-500">No popular bundles are active right now.</p>
+					<p className="rounded-2xl border border-dashed border-slate-200 bg-white p-4 text-sm text-slate-500">{bundlesLoadError ? "Popular bundles couldn’t be loaded. Please refresh to try again." : "No popular bundles are active right now."}</p>
 				)}
 			</section>
 
@@ -421,11 +370,11 @@ export function DashboardHome() {
 						<h3 className="text-lg md:text-xl font-semibold text-slate-900">Recent Transactions</h3>
 						<Link href="/transactions" className="text-sm font-medium text-sky-600 hover:text-sky-700">View all</Link>
 					</div>
-					{transactions.length > 0 ? <ul className="space-y-3" role="list">
-						{transactions.map((t) => (
-							<TransactionItem key={t.id} transaction={t} href={`/transactions/${encodeURIComponent(t.id)}`} />
-						))}
-					</ul> : <p className="py-6 text-sm text-slate-500">No transactions yet.</p>}
+					{dashboardLoading ? (
+						<div className="space-y-3 py-2" role="status" aria-live="polite">{[0, 1, 2].map((item) => <div key={item} className="h-14 animate-pulse rounded-xl bg-slate-100" />)}<span className="sr-only">Loading recent transactions</span></div>
+					) : transactions.length > 0 ? <ul className="space-y-3" role="list">
+						{transactions.map((t) => (<TransactionItem key={t.id} transaction={t} href={`/transactions/${encodeURIComponent(t.id)}`} />))}
+					</ul> : <p className="py-6 text-sm text-slate-500">{ordersLoadError ? "Recent transactions couldn’t be loaded. Please refresh to try again." : "No transactions yet."}</p>}
 				</div>
 			</section>
 

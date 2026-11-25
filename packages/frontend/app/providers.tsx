@@ -2,46 +2,29 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 
-type Theme = "light" | "dark" | "system";
+type Theme = "light" | "dark";
 type ThemeContextValue = { theme: Theme; cycleTheme: () => void };
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("system");
+  const [theme, setTheme] = useState<Theme>("light");
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const savedTheme = window.localStorage.getItem("xbundle-theme");
-    if (savedTheme === "light" || savedTheme === "dark" || savedTheme === "system") {
-      setTheme(savedTheme);
-    }
+    // Older installs may have saved "system". Migrate those to light mode.
+    setTheme(savedTheme === "dark" ? "dark" : "light");
     setReady(true);
   }, []);
 
   useEffect(() => {
     if (!ready) return;
-
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const updateTheme = () => {
-      const isDark = theme === "dark" || (theme === "system" && mediaQuery.matches);
-      document.documentElement.classList.toggle("dark", isDark);
-    };
-
-    updateTheme();
-    mediaQuery.addEventListener("change", updateTheme);
+    document.documentElement.classList.toggle("dark", theme === "dark");
     window.localStorage.setItem("xbundle-theme", theme);
-
-    return () => mediaQuery.removeEventListener("change", updateTheme);
   }, [ready, theme]);
 
-  const cycleTheme = () => {
-    setTheme((currentTheme) => {
-      if (currentTheme === "system") return "light";
-      if (currentTheme === "light") return "dark";
-      return "system";
-    });
-  };
+  const cycleTheme = () => setTheme((currentTheme) => currentTheme === "dark" ? "light" : "dark");
 
   return (
     <ThemeContext.Provider value={{ theme, cycleTheme }}>

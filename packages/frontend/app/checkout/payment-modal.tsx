@@ -23,8 +23,6 @@ const NETWORKS = [
 const getNetworkMeta = (networkId: string | null) =>
   NETWORKS.find((network) => network.id === networkId) ?? { id: "", name: "N/A", logo: "/mtn.svg" };
 
-const PAYSTACK_PUBLIC_KEY = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY;
-
 type PaymentModalProps = {
   network: string | null;
   bundleId: string | null;
@@ -32,7 +30,6 @@ type PaymentModalProps = {
   validity: string | null;
   price: string | null;
   recipient: string;
-  promoCode?: string;
   onClose?: () => void;
 };
 
@@ -43,18 +40,18 @@ export function PaymentModal({
   validity,
   price,
   recipient,
-  promoCode,
   onClose,
 }: PaymentModalProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [paystackLoaded, setPaystackLoaded] = useState(false);
   const [email, setEmail] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"card" | "mobile">("card");
   const [touched, setTouched] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [confirmedAmount, setConfirmedAmount] = useState<number | null>(null);
 
   const networkMeta = useMemo(() => getNetworkMeta(network), [network]);
+  const close = useMemo(() => onClose ?? (() => router.back()), [onClose, router]);
 
   // Extract amount from price string (e.g., "GH₵ 50.00" -> 50)
   const getAmount = (): number => {
@@ -65,27 +62,34 @@ export function PaymentModal({
 
   const amount = getAmount();
 
-  // Load Paystack script
   useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://js.paystack.co/v1/inline.js";
-    script.async = true;
-    script.onload = () => {
-      console.log("Paystack script loaded successfully");
-      setPaystackLoaded(true);
-    };
-    script.onerror = () => {
-      console.error("Failed to load Paystack script");
-      toast.error("Failed to load payment system. Please refresh and try again.");
-    };
-    document.body.appendChild(script);
-
-    return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const dialog = document.querySelector<HTMLElement>('[aria-label="Complete your payment"]');
+    const focusable = () => Array.from(
+      dialog?.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])') ?? []
+    );
+    window.requestAnimationFrame(() => {
+      (dialog?.querySelector<HTMLElement>("input") ?? focusable()[0])?.focus();
+    });
+    const handleKeys = (event: KeyboardEvent) => {
+      if (event.key === "Escape") { close(); return; }
+      if (event.key !== "Tab") return;
+      const items = focusable();
+      if (!items.length) return;
+      if (event.shiftKey && document.activeElement === items[0]) {
+        event.preventDefault();
+        items[items.length - 1].focus();
+      } else if (!event.shiftKey && document.activeElement === items[items.length - 1]) {
+        event.preventDefault();
+        items[0].focus();
       }
     };
-  }, []);
+    document.addEventListener("keydown", handleKeys);
+    return () => {
+      document.removeEventListener("keydown", handleKeys);
+      previousFocus?.focus();
+    };
+  }, [close]);
 
   const validateEmail = (email: string) => {
     return String(email)
@@ -113,7 +117,6 @@ export function PaymentModal({
         paymentMethod: paymentMethod === "mobile" ? "Mobile Money" : "Card",
         paymentProvider: "Paystack",
         email: email,
-        promoCode: promoCode || null,
       };
 
       const headers: Record<string, string> = {
@@ -134,6 +137,9 @@ export function PaymentModal({
       }
 
       const createdOrder = await response.json();
+      if (!createdOrder?.order?.orderId || !Number.isFinite(Number(createdOrder.order.amount))) {
+        throw new Error("The server returned an invalid order. Please try again.");
+      }
       return createdOrder.order;
     } catch (error) {
       console.error("Error creating order:", error);
@@ -144,118 +150,44 @@ export function PaymentModal({
   const handlePayment = async () => {
     try {
       setTouched(true);
-
-      if (!paystackLoaded) {
-        toast.error("Payment system is still loading. Please try again.");
-        return;
-      }
-
       if (!validateEmail(email)) {
         toast.error("Please enter a valid email address");
         return;
       }
-
-      if (!PAYSTACK_PUBLIC_KEY) {
-        console.error("Paystack public key not found");
-        toast.error("Payment configuration error. Please contact support.");
+      if (!bundleId || !recipient) {
+        toast.error("Order details are incomplete. Please return to checkout.");
         return;
       }
 
       setLoading(true);
       setSubmitError("");
-
-      // Create order in backend first
       const order = await createOrder();
+      const trustedAmount = Number(order.amount);
+      if (!Number.isFinite(trustedAmount) || trustedAmount <= 0) {
+        throw new Error("The bundle price could not be confirmed. Please try again.");
+      }
+      setConfirmedAmount(trustedAmount);
 
-      console.log("Initiating Paystack payment", {
-        amount,
-        email,
-        paymentMethod,
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const initializeResponse = await fetch(`${apiUrl}/api/payments/paystack/initialize`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeaders() },
+        body: JSON.stringify({ orderId: order.orderId, email }),
       });
-
-      // Generate a unique reference using the order ID
-      const reference = order?.orderId || `HKUP-${network}-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
-
-      // Convert to pesewas (multiply by 100)
-      const amountInPesewas = Math.round(amount * 100);
-
-      // Initialize Paystack payment
-      const handler = (window as any).PaystackPop.setup({
-        key: PAYSTACK_PUBLIC_KEY,
-        email: email,
-        amount: amountInPesewas,
-        currency: "GHS",
-        ref: reference,
-        channels:
-          paymentMethod === "mobile"
-            ? ["mobile_money"]
-            : ["card"],
-        label: "Pay for Data Bundle",
-        metadata: {
-          network: network,
-          bundle_id: bundleId,
-          size: size,
-          recipient: recipient,
-          promo_code: promoCode || null,
-          order_id: order?._id,
-          custom_fields: [
-            {
-              display_name: "Network",
-              variable_name: "network",
-              value: network,
-            },
-            {
-              display_name: "Bundle Size",
-              variable_name: "bundle_size",
-              value: size,
-            },
-            {
-              display_name: "Recipient",
-              variable_name: "recipient",
-              value: recipient,
-            },
-          ],
-        },
-        callback: async function (response: any) {
-          try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-            const verificationResponse = await fetch(`${apiUrl}/api/payments/paystack/verify`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ reference: response.reference }),
-            });
-            const verification = await verificationResponse.json();
-            if (!verificationResponse.ok || verification.order?.paymentStatus !== "PAID") {
-              throw new Error(verification.error || "Payment could not be verified yet.");
-            }
-
-            toast.success("Payment verified. Your order is being processed.");
-            setLoading(false);
-            router.push(`/transactions/${encodeURIComponent(order.orderId)}`);
-          } catch (error) {
-            const message = error instanceof Error ? error.message : "Payment could not be verified yet.";
-            setSubmitError(message);
-            toast.error(message);
-            setLoading(false);
-          }
-        },
-        onClose: function () {
-          setLoading(false);
-          toast("Payment window closed. Your order was not completed.");
-        },
-      });
-
-      handler.openIframe();
+      const initialized = await initializeResponse.json();
+      const authorizationUrl = initialized?.data?.authorization_url;
+      if (!initializeResponse.ok || !authorizationUrl) {
+        throw new Error(initialized.error || "Unable to start secure payment.");
+      }
+      window.location.assign(authorizationUrl);
     } catch (error) {
-      console.error("Payment error:", error);
-      const errorMessage = error instanceof Error ? error.message : "Payment failed. Please try again.";
-      setSubmitError(errorMessage);
-      toast.error(errorMessage);
+      console.error("Payment initialization error:", error);
+      const message = error instanceof Error ? error.message : "Payment could not be started. Please try again.";
+      setSubmitError(message);
+      toast.error(message);
       setLoading(false);
     }
   };
-
-  const close = useMemo(() => onClose ?? (() => router.back()), [onClose, router]);
 
   return (
     <div
@@ -340,7 +272,7 @@ export function PaymentModal({
                   </div>
                   <div className="flex items-center justify-between rounded-[12px] bg-white p-3 border border-slate-100">
                     <span className="text-[13px] text-slate-600">Total Amount</span>
-                    <span className="text-[18px] font-bold text-slate-900">{price}</span>
+                    <span className="text-[18px] font-bold text-slate-900">{confirmedAmount !== null ? "GH₵ " + confirmedAmount.toFixed(2) : price}</span>
                   </div>
                 </div>
               </section>
@@ -353,6 +285,8 @@ export function PaymentModal({
                 <input
                   type="email"
                   id="email"
+                  inputMode="email"
+                  autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   onBlur={() => setTouched(true)}
@@ -387,6 +321,7 @@ export function PaymentModal({
                   <button
                     type="button"
                     onClick={() => setPaymentMethod("card")}
+                    aria-pressed={paymentMethod === "card"}
                     className={`w-full rounded-[14px] border-2 p-4 text-left transition-all ${
                       paymentMethod === "card"
                         ? "border-blue-500 bg-blue-50"
@@ -420,6 +355,7 @@ export function PaymentModal({
                   <button
                     type="button"
                     onClick={() => setPaymentMethod("mobile")}
+                    aria-pressed={paymentMethod === "mobile"}
                     className={`w-full rounded-[14px] border-2 p-4 text-left transition-all ${
                       paymentMethod === "mobile"
                         ? "border-blue-500 bg-blue-50"
@@ -476,9 +412,9 @@ export function PaymentModal({
             <button
               type="button"
               onClick={handlePayment}
-              disabled={loading || !paystackLoaded || !canSubmit}
+              disabled={loading || !canSubmit}
               className={`w-full rounded-[12px] px-6 py-3 font-semibold text-[15px] transition-all flex items-center justify-center gap-2 ${
-                loading || !paystackLoaded || !canSubmit
+                loading || !canSubmit
                   ? "bg-slate-100 text-slate-400 cursor-not-allowed"
                   : "bg-blue-600 text-white hover:bg-blue-700 active:scale-95"
               }`}
@@ -487,17 +423,12 @@ export function PaymentModal({
               {loading ? (
                 <>
                   <Loader size={18} className="animate-spin" />
-                  Processing...
-                </>
-              ) : !paystackLoaded ? (
-                <>
-                  <Loader size={18} className="animate-spin" />
-                  Loading...
+                  Redirecting to secure payment...
                 </>
               ) : (
                 <>
                   <Lock size={18} />
-                  Pay {price}
+                  {confirmedAmount !== null ? "Pay GH₵ " + confirmedAmount.toFixed(2) : "Continue to secure payment"}
                 </>
               )}
             </button>
