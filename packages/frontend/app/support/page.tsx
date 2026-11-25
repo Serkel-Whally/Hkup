@@ -9,7 +9,7 @@ const topics = [
   { title: "I paid but my order has not updated", detail: "First, check the transaction status in your account. If the payment provider confirms a charge but the order remains unchanged, keep the order reference, amount, payment date and provider confirmation for investigation. Avoid paying again until the original payment status is clear." },
   { title: "My data bundle has not arrived", detail: "Open the relevant transaction and review its order status. Confirm that the recipient number and network were entered correctly. Keep the order reference so the operator can investigate the delivery status." },
   { title: "I entered the wrong phone number", detail: "Check the order details immediately. Do not assume a submitted order can be edited or reversed. Keep the order reference and contact the service operator through an officially published support channel when one is available." },
-  { title: "How do I find my order reference?", detail: "Sign in using the account used for the purchase, open Transactions and select the relevant order. The reference helps identify the payment and order during an investigation." },
+  { title: "How do I find my order reference?", detail: "Open Check order and enter the reference. Sign in using the account used for the purchase to view its payment and delivery status. You can also find all your purchases under Transactions." },
 ];
 
 const quickLinks = [
