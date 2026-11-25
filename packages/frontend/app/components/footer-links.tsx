@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { FileText, Headset, Info, Shield } from "lucide-react";
+import { ClipboardCheck, FileText, Headset, Info, Shield } from "lucide-react";
 
 const links = [
+  { label: "Check order", href: "/check-order", Icon: ClipboardCheck },
   { label: "Support", href: "/support", Icon: Headset },
   { label: "About", href: "/about", Icon: Info },
   { label: "Privacy", href: "/privacy", Icon: Shield },
