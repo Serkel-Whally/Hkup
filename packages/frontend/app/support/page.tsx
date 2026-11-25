@@ -13,7 +13,7 @@ const topics = [
 ];
 
 const quickLinks = [
-  { title: "Track an order", description: "Review payment and delivery status.", href: "/transactions", icon: PackageCheck },
+  { title: "Track an order", description: "Review payment and delivery status.", href: "/check-order", icon: PackageCheck },
   { title: "Wallet", description: "Review your wallet balance and activity.", href: "/wallet", icon: Wallet },
   { title: "Browse bundles", description: "Find a bundle before placing an order.", href: "/bundles", icon: Search },
 ];
