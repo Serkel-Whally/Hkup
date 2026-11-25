@@ -70,7 +70,7 @@ const faqs = [
   },
   {
     question: "How can I check my order?",
-    answer: "Sign in and open Transactions to view the payment and order status for your purchases.",
+    answer: "Open Check order and enter your reference. Sign in to the account used for the purchase to view payment and delivery updates.",
   },
 ];
 
@@ -90,6 +90,7 @@ export default function LandingPage() {
             <div className="mr-1 hidden items-center rounded-full border border-slate-200/80 bg-slate-50/80 p-1 dark:border-slate-800 dark:bg-slate-900/80 sm:flex">
               <Link href="#how-it-works" className="rounded-full px-3.5 py-2 text-[13px] font-semibold text-slate-600 transition hover:bg-white hover:text-slate-950 hover:shadow-sm dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">How it works</Link>
               <Link href="#networks" className="rounded-full px-3.5 py-2 text-[13px] font-semibold text-slate-600 transition hover:bg-white hover:text-slate-950 hover:shadow-sm dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">Networks</Link>
+              <Link href="/check-order" className="rounded-full px-3.5 py-2 text-[13px] font-semibold text-sky-700 transition hover:bg-white hover:shadow-sm dark:text-cyan-400 dark:hover:bg-slate-800">Check order</Link>
             </div>
             <ThemeToggle />
             <Link href="/login" className="inline-flex min-h-10 items-center justify-center rounded-xl px-2.5 text-[13px] font-bold text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800 sm:px-3.5 sm:text-sm">Log in</Link>
