@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { Suspense } from "react";
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -139,6 +140,8 @@ function CheckOrderContent() {
 
 export default function CheckOrderPage() {
   return (
-    <CheckOrderContent />
+    <Suspense fallback={<main className="flex min-h-screen items-center justify-center bg-slate-50 text-sm font-medium text-slate-500 dark:bg-slate-950 dark:text-slate-400">Loading order lookup…</main>}>
+      <CheckOrderContent />
+    </Suspense>
   );
 }
